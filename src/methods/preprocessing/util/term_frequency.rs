@@ -82,6 +82,7 @@ mod tests {
     use super::*;
     use rstest::rstest;
 
+    #[derive(Clone)]
     struct TestDocument(Vec<String>);
 
     fn assert_counts(term_frequency: &TermFrequency, expected: &[(&str, usize)]) {

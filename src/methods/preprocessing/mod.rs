@@ -23,7 +23,7 @@ pub trait FittingTask: Send {
         Self: Sized;
 }
 
-pub trait Document: Sync {
+pub trait Document: Sync + Clone {
     fn name(&self) -> &str;
     fn pages(&self) -> &[String];
     fn pages_size(&self) -> i16;

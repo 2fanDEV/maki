@@ -254,6 +254,7 @@ mod tests {
     use super::*;
     use rstest::rstest;
 
+    #[derive(Clone)]
     struct TestDocument(Vec<String>);
 
     impl TestDocument {
