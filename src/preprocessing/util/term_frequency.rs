@@ -1,7 +1,9 @@
 use crate::preprocessing::Document;
+use crate::preprocessing::util::merge_counts;
 use rayon::prelude::*;
 use regex::Regex;
 use std::collections::HashMap;
+use std::collections::hash_map::{Keys, Values};
 use std::sync::LazyLock;
 
 static WORDS: LazyLock<Regex> = LazyLock::new(|| {
@@ -49,24 +51,25 @@ impl TermFrequency {
         Self { counts }
     }
 
-    /// Borrows the counts for lookups, iteration, and TF-IDF calculations.
-    pub fn counts(&self) -> &HashMap<String, usize> {
-        &self.counts
+    pub fn keys(&self) -> Keys<'_, String, usize> {
+        self.counts.keys()
     }
-}
 
-fn merge_counts(
-    mut left: HashMap<String, usize>,
-    mut right: HashMap<String, usize>,
-) -> HashMap<String, usize> {
-    // Merge the smaller map into the larger one to reduce insertions.
-    if left.len() < right.len() {
-        std::mem::swap(&mut left, &mut right);
+    pub fn values(&self) -> Values<'_, String, usize> {
+        self.counts.values()
     }
-    for (word, count) in right {
-        *left.entry(word).or_insert(0) += count;
+
+    pub fn get(&self, word: &str) -> Option<&usize> {
+        self.counts.get(word)
     }
-    left
+
+    pub fn len(&self) -> usize {
+        self.counts.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.counts.is_empty()
+    }
 }
 
 #[cfg(test)]
@@ -75,6 +78,13 @@ mod tests {
     use rstest::rstest;
 
     struct TestDocument(Vec<String>);
+
+    fn assert_counts(term_frequency: &TermFrequency, expected: &[(&str, usize)]) {
+        assert_eq!(term_frequency.len(), expected.len());
+        for &(word, count) in expected {
+            assert_eq!(term_frequency.get(word), Some(&count));
+        }
+    }
 
     impl Document for TestDocument {
         fn name(&self) -> &str {
@@ -107,12 +117,7 @@ mod tests {
     )]
     fn counts_document(#[case] input: &[&str], #[case] expected: &[(&str, usize)]) {
         let document = TestDocument(input.iter().map(|page| (*page).to_owned()).collect());
-        let expected: HashMap<String, usize> = expected
-            .iter()
-            .map(|&(word, count)| (word.to_owned(), count))
-            .collect();
-
-        assert_eq!(TermFrequency::count(&document).counts(), &expected);
+        assert_counts(&TermFrequency::count(&document), expected);
     }
 
     #[rstest]
@@ -127,14 +132,6 @@ mod tests {
             .iter()
             .map(|pages| TestDocument(pages.iter().map(|page| (*page).to_owned()).collect()))
             .collect();
-        let expected: HashMap<String, usize> = expected
-            .iter()
-            .map(|&(word, count)| (word.to_owned(), count))
-            .collect();
-
-        assert_eq!(
-            TermFrequency::count_documents(&documents).counts(),
-            &expected
-        );
+        assert_counts(&TermFrequency::count_documents(&documents), expected);
     }
 }

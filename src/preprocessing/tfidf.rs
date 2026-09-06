@@ -1,4 +1,4 @@
-use crate::preprocessing::{Document, util::counter::TermFrequency};
+use crate::preprocessing::{Document, util::term_frequency::TermFrequency};
 use rayon::prelude::*;
 
 #[derive(Default)]
@@ -71,7 +71,6 @@ impl TfIdf {
 mod tests {
     use super::*;
     use rstest::rstest;
-    use std::collections::HashMap;
 
     struct TestDocument(Vec<String>);
 
@@ -106,11 +105,10 @@ mod tests {
 
         assert_eq!(frequencies.len(), expected.len());
         for (frequency, expected) in frequencies.iter().zip(expected) {
-            let expected: HashMap<String, usize> = expected
-                .iter()
-                .map(|&(word, count)| (word.to_owned(), count))
-                .collect();
-            assert_eq!(frequency.counts(), &expected);
+            assert_eq!(frequency.len(), expected.len());
+            for &(word, count) in *expected {
+                assert_eq!(frequency.get(word), Some(&count));
+            }
         }
     }
 }
