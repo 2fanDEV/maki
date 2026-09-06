@@ -1,10 +1,11 @@
-use crate::preprocessing::Document;
-use crate::preprocessing::util::merge_counts;
 use rayon::prelude::*;
 use regex::Regex;
 use std::collections::HashMap;
 use std::collections::hash_map::{Iter, Keys, Values};
 use std::sync::LazyLock;
+
+use crate::methods::preprocessing::Document;
+use crate::methods::preprocessing::util::merge_counts;
 
 static WORDS: LazyLock<Regex> = LazyLock::new(|| {
     // Start with a Unicode letter or number, then allow combining accents too.

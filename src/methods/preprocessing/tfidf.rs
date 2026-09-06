@@ -1,10 +1,11 @@
-use crate::preprocessing::{
-    Document,
-    util::{document_frequency::DocumentFrequency, term_frequency::TermFrequency},
-};
 use anyhow::{Result, anyhow, bail};
 use rayon::prelude::*;
 use sprs::CsMat;
+
+use crate::methods::preprocessing::{
+    Document,
+    util::{document_frequency::DocumentFrequency, term_frequency::TermFrequency},
+};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum IdfWeightScheme {

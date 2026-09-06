@@ -1,6 +1,6 @@
 mod classification_service;
 mod document_service;
-pub mod preprocessing;
+mod methods;
 mod service;
 
 pub trait Model {

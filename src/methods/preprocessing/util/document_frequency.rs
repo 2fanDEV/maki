@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::preprocessing::util::term_frequency::TermFrequency;
+use crate::methods::preprocessing::util::term_frequency::TermFrequency;
 
 pub struct DocumentFrequency {
     counts: HashMap<String, usize>,
@@ -53,8 +53,9 @@ impl DocumentFrequency {
 
 #[cfg(test)]
 mod tests {
+    use crate::methods::preprocessing::Document;
+
     use super::*;
-    use crate::preprocessing::Document;
     use rstest::rstest;
 
     struct TestDocument(Vec<String>);
