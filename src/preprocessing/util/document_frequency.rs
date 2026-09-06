@@ -1,10 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::preprocessing::util::term_frequency::TermFrequency;
 
 pub struct DocumentFrequency {
     counts: HashMap<String, usize>,
-    vocabulary: HashSet<String>,
+    vocabulary: Vec<String>,
 }
 
 impl DocumentFrequency {
@@ -19,7 +19,8 @@ impl DocumentFrequency {
                 }
             }
         }
-        let vocabulary = counts.keys().cloned().collect();
+        let mut vocabulary: Vec<_> = counts.keys().cloned().collect();
+        vocabulary.sort();
         Self { counts, vocabulary }
     }
 
@@ -27,8 +28,18 @@ impl DocumentFrequency {
         self.counts.get(word)
     }
 
-    pub fn vocabulary(&self) -> impl Iterator<Item = &str> {
-        self.vocabulary.iter().map(String::as_str)
+    pub fn vocabulary(&self) -> &[String] {
+        &self.vocabulary
+    }
+
+    pub fn index_of(&self, word: &str) -> Option<usize> {
+        self.vocabulary
+            .binary_search_by(|candidate| candidate.as_str().cmp(word))
+            .ok()
+    }
+
+    pub(crate) fn maximum(&self) -> Option<usize> {
+        self.counts.values().copied().max()
     }
 
     pub fn len(&self) -> usize {
@@ -104,10 +115,13 @@ mod tests {
             assert_eq!(document_frequency.get(word), Some(&count));
         }
 
-        let expected_vocabulary: HashSet<&str> = expected.iter().map(|&(word, _)| word).collect();
-        assert_eq!(
-            document_frequency.vocabulary().collect::<HashSet<_>>(),
-            expected_vocabulary
-        );
+        let mut expected_vocabulary: Vec<String> =
+            expected.iter().map(|&(word, _)| word.to_owned()).collect();
+        expected_vocabulary.sort();
+        assert_eq!(document_frequency.vocabulary(), expected_vocabulary);
+        for (index, word) in expected_vocabulary.iter().enumerate() {
+            assert_eq!(document_frequency.index_of(word), Some(index));
+        }
+        assert_eq!(document_frequency.index_of("missing"), None);
     }
 }

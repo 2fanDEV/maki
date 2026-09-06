@@ -1,7 +1,7 @@
 use std::future::Future;
 
 use anyhow::Result;
-mod tfidf;
+pub mod tfidf;
 pub mod util;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

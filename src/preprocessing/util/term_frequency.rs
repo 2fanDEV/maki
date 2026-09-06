@@ -3,7 +3,7 @@ use crate::preprocessing::util::merge_counts;
 use rayon::prelude::*;
 use regex::Regex;
 use std::collections::HashMap;
-use std::collections::hash_map::{Keys, Values};
+use std::collections::hash_map::{Iter, Keys, Values};
 use std::sync::LazyLock;
 
 static WORDS: LazyLock<Regex> = LazyLock::new(|| {
@@ -57,6 +57,10 @@ impl TermFrequency {
 
     pub fn values(&self) -> Values<'_, String, usize> {
         self.counts.values()
+    }
+
+    pub fn iter(&self) -> Iter<'_, String, usize> {
+        self.counts.iter()
     }
 
     pub fn get(&self, word: &str) -> Option<&usize> {
