@@ -4,7 +4,8 @@ use anyhow::Result;
 pub mod tfidf;
 pub mod util;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum FittingState {
     Initialized,
     Queued,
@@ -27,4 +28,9 @@ pub trait Document: Sync + Clone {
     fn name(&self) -> &str;
     fn pages(&self) -> &[String];
     fn pages_size(&self) -> i16;
+}
+
+/// A classification document with a finite numeric class label.
+pub trait LabeledDocument: Document {
+    fn label(&self) -> f64;
 }

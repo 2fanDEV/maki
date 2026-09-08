@@ -16,28 +16,119 @@ pub struct TrainTestSplit<'a, T> {
     pub test_documents: Vec<&'a T>,
 }
 
-/// Each split samples independently; the same partition may occur again.
-/// The training size is rounded down, with the remainder used for testing.
-/// Finite ratios are clamped to [0, 1]; either partition may be empty.
-pub(super) fn train_test_splits<T>(
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SamplingStrategy {
+    Random,
+    #[default]
+    Stratified,
+}
+
+impl SplitStrategy {
+    pub fn repetitions(self) -> usize {
+        match self {
+            Self::ONCE => 1,
+            Self::REPEATED(count) => count,
+        }
+    }
+}
+
+/// Validate evaluated-training inputs without creating all requested splits.
+pub(crate) fn validate_training_documents<T: super::LabeledDocument>(
     documents: &[T],
+    ratio: f32,
+    strategy: SplitStrategy,
+    sampling: SamplingStrategy,
+) -> Result<()> {
+    invariant!(
+        ratio.is_finite() && ratio > 0.0 && ratio < 1.0 && strategy.repetitions() > 0,
+        "evaluated training requires a ratio between zero and one and at least one split"
+    );
+    invariant!(
+        !documents.is_empty() && documents.iter().all(|doc| doc.label().is_finite()),
+        "training documents must be nonempty and have finite labels"
+    );
+    let groups = class_groups(documents);
+    invariant!(
+        groups.iter().all(|group| group.len() >= 2),
+        "every class needs at least two documents"
+    );
+    if sampling == SamplingStrategy::Random {
+        let train_count = (documents.len() as f32 * ratio) as usize;
+        invariant!(
+            train_count > 0 && train_count < documents.len(),
+            "training and test partitions must be nonempty"
+        );
+    }
+    Ok(())
+}
+
+fn class_groups<T: super::LabeledDocument>(documents: &[T]) -> Vec<Vec<&T>> {
+    let mut sorted: Vec<_> = documents.iter().collect();
+    sorted.sort_by(|a, b| a.label().partial_cmp(&b.label()).unwrap());
+    let mut groups: Vec<Vec<&T>> = Vec::new();
+    for document in sorted {
+        if let Some(group) = groups
+            .last_mut()
+            .filter(|group| group[0].label() == document.label())
+        {
+            group.push(document);
+        } else {
+            groups.push(vec![document]);
+        }
+    }
+    groups
+}
+
+pub(super) fn evaluated_splits<T: super::LabeledDocument>(
+    documents: &[T],
+    ratio: f32,
+    strategy: SplitStrategy,
+    sampling: SamplingStrategy,
+    seed: u64,
+) -> Result<Vec<TrainTestSplit<'_, T>>> {
+    use rand::SeedableRng;
+    validate_training_documents(documents, ratio, strategy, sampling)?;
+    let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+    if sampling == SamplingStrategy::Random {
+        return random_splits(documents, ratio, strategy, &mut rng);
+    }
+    let groups = class_groups(documents);
+    let mut splits = Vec::with_capacity(strategy.repetitions());
+    for _ in 0..strategy.repetitions() {
+        let mut train_documents = Vec::new();
+        let mut test_documents = Vec::new();
+        for group in &groups {
+            let mut shuffled = group.clone();
+            shuffled.shuffle(&mut rng);
+            let train_count = ((group.len() as f32 * ratio) as usize).clamp(1, group.len() - 1);
+            train_documents.extend_from_slice(&shuffled[..train_count]);
+            test_documents.extend_from_slice(&shuffled[train_count..]);
+        }
+        train_documents.shuffle(&mut rng);
+        test_documents.shuffle(&mut rng);
+        splits.push(TrainTestSplit {
+            train_documents,
+            test_documents,
+        });
+    }
+    Ok(splits)
+}
+
+/// Original random partition behavior: finite ratios clamp to [0, 1], sizes round down.
+fn random_splits<'a, T>(
+    documents: &'a [T],
     split_ratio: f32,
     strategy: SplitStrategy,
-) -> Result<Vec<TrainTestSplit<'_, T>>> {
-    let repetitions = match strategy {
-        SplitStrategy::ONCE => 1,
-        SplitStrategy::REPEATED(repetitions) => repetitions,
-    };
+    rng: &mut impl rand::Rng,
+) -> Result<Vec<TrainTestSplit<'a, T>>> {
     invariant!(split_ratio.is_finite(), "split ratio must be finite");
-    let split_ratio = split_ratio.clamp(0.0, 1.0);
-    invariant!(repetitions > 0, "at least one split is required");
-    let train_count = (documents.len() as f32 * split_ratio) as usize;
-
-    let mut rng = rand::rng();
+    invariant!(strategy.repetitions() > 0, "at least one split is required");
+    let train_count = (documents.len() as f32 * split_ratio.clamp(0.0, 1.0)) as usize;
     let mut shuffled: Vec<_> = documents.iter().collect();
-    let mut splits = Vec::with_capacity(repetitions);
-    for _ in 0..repetitions {
-        shuffled.shuffle(&mut rng);
+    let mut splits = Vec::with_capacity(strategy.repetitions());
+    for _ in 0..strategy.repetitions() {
+        shuffled.shuffle(rng);
         splits.push(TrainTestSplit {
             train_documents: shuffled[..train_count].to_vec(),
             test_documents: shuffled[train_count..].to_vec(),
@@ -49,6 +140,14 @@ pub(super) fn train_test_splits<T>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn train_test_splits<T>(
+        documents: &[T],
+        ratio: f32,
+        strategy: SplitStrategy,
+    ) -> Result<Vec<TrainTestSplit<'_, T>>> {
+        random_splits(documents, ratio, strategy, &mut rand::rng())
+    }
 
     #[test]
     fn repeated_splits_partition_every_document_without_changing_the_input() {
