@@ -1,3 +1,4 @@
+pub mod api;
 pub mod classification_service;
 pub mod document_service;
 mod macros;

@@ -16,7 +16,17 @@ pub struct TrainTestSplit<'a, T> {
     pub test_documents: Vec<&'a T>,
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(
+    schemars::JsonSchema,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    serde::Deserialize,
+    serde::Serialize,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum SamplingStrategy {
     Random,

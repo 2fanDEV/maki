@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::invariant;
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(
+    schemars::JsonSchema, Clone, Copy, Debug, Default, Eq, PartialEq, Deserialize, Serialize,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum EvaluationStrategy {
     #[default]
@@ -12,7 +14,7 @@ pub enum EvaluationStrategy {
     MatthewsCorrelation,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Copy, Debug, Default, PartialEq, Serialize)]
 pub struct Metrics {
     pub macro_f1: f64,
     pub balanced_accuracy: f64,
@@ -100,7 +102,7 @@ impl Metrics {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Debug, PartialEq, Serialize)]
 pub struct SplitEvaluation {
     pub split_index: usize,
     pub train_samples: usize,
@@ -129,7 +131,7 @@ impl SplitEvaluation {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Debug, PartialEq, Serialize)]
 pub struct MetricSummary {
     pub mean: Metrics,
     /// Population standard deviation across the observed splits.
@@ -153,7 +155,7 @@ impl MetricSummary {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Debug, PartialEq, Serialize)]
 pub struct EvaluationReport {
     pub strategy: EvaluationStrategy,
     pub seed: u64,

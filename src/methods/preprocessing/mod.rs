@@ -4,7 +4,7 @@ use anyhow::Result;
 pub mod tfidf;
 pub mod util;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(schemars::JsonSchema, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FittingState {
     Initialized,

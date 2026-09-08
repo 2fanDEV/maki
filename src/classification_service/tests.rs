@@ -1,5 +1,10 @@
 use super::*;
-use axum::{body::Body, http::Request};
+use crate::service::Service;
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+    response::Response,
+};
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use tokio::time::{Duration, timeout};
@@ -47,7 +52,7 @@ async fn submit(service: &ClassificationService, value: Value) -> Value {
     body
 }
 async fn finished(service: &ClassificationService, id: Uuid) -> ModelMetadata {
-    let mut receiver = service.receiver(id).await.ok().unwrap();
+    let mut receiver = service.receiver(id).await.unwrap();
     timeout(Duration::from_secs(5), async {
         loop {
             let metadata = receiver.borrow_and_update().clone();

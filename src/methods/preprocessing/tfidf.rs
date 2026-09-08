@@ -7,7 +7,17 @@ use crate::methods::preprocessing::{
     util::{document_frequency::DocumentFrequency, term_frequency::TermFrequency},
 };
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(
+    schemars::JsonSchema,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    serde::Deserialize,
+    serde::Serialize,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum IdfWeightScheme {
     #[default]
@@ -18,7 +28,17 @@ pub enum IdfWeightScheme {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(
+    schemars::JsonSchema,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    serde::Deserialize,
+    serde::Serialize,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum TfWeightScheme {
     BINARY,

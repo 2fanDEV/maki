@@ -3,7 +3,6 @@ use sprs::CsMat;
 
 use crate::{invariant, methods::classifiers::Classifier};
 
-/// Classifies samples by the Euclidean distance to each class's mean vector.
 #[derive(Debug)]
 pub struct NearestCentroid {
     labels: Vec<f64>,

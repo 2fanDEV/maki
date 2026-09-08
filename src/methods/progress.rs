@@ -4,7 +4,7 @@ use super::preprocessing::FittingState;
 
 /// Percentage of the trainer's complete split collection successfully trained.
 /// Evaluation may still be running when training reaches 100%.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Copy, Debug, PartialEq, Serialize)]
 pub struct TrainingProgress {
     pub state: FittingState,
     pub trained_splits: usize,

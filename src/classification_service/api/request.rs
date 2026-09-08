@@ -14,17 +14,18 @@ use crate::{
 };
 
 /// Supported model types. Add variants and their training dispatch together.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ClassifierType {
     NearestCentroid,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(schemars::JsonSchema, Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TrainingDocument {
     pub name: String,
     pub pages: Vec<String>,
+    /// Finite numeric class label. Each class needs at least two documents.
     pub label: f64,
 }
 
@@ -45,10 +46,12 @@ impl LabeledDocument for TrainingDocument {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Debug, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct SplitSettings {
+    /// Training fraction, strictly between zero and one.
     pub ratio: f32,
+    /// Number of train/test splits; must be at least one.
     pub repetitions: usize,
     pub sampling: SamplingStrategy,
 }
@@ -62,7 +65,7 @@ impl Default for SplitSettings {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(schemars::JsonSchema, Clone, Debug, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct TfIdfSettings {
     pub tf_scheme: TfWeightScheme,
@@ -79,7 +82,7 @@ impl Default for TfIdfSettings {
     }
 }
 impl TfIdfSettings {
-    pub(super) fn builder(&self) -> TfIdfBuilder {
+    pub(in crate::classification_service) fn builder(&self) -> TfIdfBuilder {
         let mut builder = TfIdf::Builder();
         builder
             .tf_weight_scheme(self.tf_scheme)
@@ -89,7 +92,7 @@ impl TfIdfSettings {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(schemars::JsonSchema, Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateModelRequest {
     pub classifier: ClassifierType,
@@ -100,11 +103,12 @@ pub struct CreateModelRequest {
     pub tf_idf: TfIdfSettings,
     #[serde(default)]
     pub evaluation_strategy: EvaluationStrategy,
+    /// Random seed for reproducible splits. Generated and returned when omitted.
     pub seed: Option<u64>,
 }
 
 impl CreateModelRequest {
-    pub(super) fn validate(&self) -> Result<()> {
+    pub(in crate::classification_service) fn validate(&self) -> Result<()> {
         validate_training_documents(
             &self.documents,
             self.split.ratio,
@@ -120,4 +124,9 @@ impl CreateModelRequest {
         self.tf_idf.builder().build()?;
         Ok(())
     }
+}
+
+#[derive(Deserialize, schemars::JsonSchema)]
+pub(super) struct ModelPath {
+    pub(super) model_id: uuid::Uuid,
 }
