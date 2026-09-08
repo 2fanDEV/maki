@@ -1,15 +1,7 @@
-mod document_service;
-mod service;
-
-use axum::Router;
-use document_service::DocumentService;
-
-use crate::service::Service;
-
 #[tokio::main]
 async fn main() {
-    let document_service = DocumentService::default();
-    let app = Router::new().nest(DocumentService::BASE_PATH, document_service.router());
+    env_logger::init();
+    let app = maki::api::router();
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
