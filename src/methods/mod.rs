@@ -7,19 +7,17 @@ use preprocessing::tfidf::{TfIdf, TfIdfBuilder};
 pub mod classifiers;
 pub mod evaluation;
 pub mod preprocessing;
-mod progress;
 mod split;
 
 pub use evaluation::{EvaluationReport, EvaluationStrategy};
-pub use preprocessing::{FittingState, LabeledDocument};
-pub use progress::TrainingProgress;
+pub use preprocessing::LabeledDocument;
 pub(crate) use split::validate_training_documents;
 pub use split::{SamplingStrategy, SplitStrategy, TrainTestSplit};
 
 /// Receives only training documents and their TF-IDF rows, in matching order.
-pub type ModelCreatingFunction<T, C> = Box<dyn FnMut(Vec<T>, &CsMat<f64>) -> Result<C>>;
+pub type ModelCreatingFunction<T, C> = Box<dyn FnMut(Vec<T>, &CsMat<f64>) -> Result<C> + Send>;
 
-pub struct TrainerBuilder<T: LabeledDocument, C: Classifier> {
+pub struct ModelTrainer<T: LabeledDocument, C: Classifier> {
     split_ratio: f32,
     split_strategy: SplitStrategy,
     sampling: SamplingStrategy,
@@ -28,10 +26,9 @@ pub struct TrainerBuilder<T: LabeledDocument, C: Classifier> {
     documents: Vec<T>,
     builder: Option<TfIdfBuilder>,
     method: ModelCreatingFunction<T, C>,
-    observer: Box<dyn FnMut(TrainingProgress)>,
 }
 
-impl<T: LabeledDocument, C: Classifier> Default for TrainerBuilder<T, C> {
+impl<T: LabeledDocument, C: Classifier> Default for ModelTrainer<T, C> {
     fn default() -> Self {
         Self {
             split_ratio: 0.8,
@@ -42,12 +39,11 @@ impl<T: LabeledDocument, C: Classifier> Default for TrainerBuilder<T, C> {
             documents: Vec::new(),
             builder: None,
             method: Box::new(|_, _| Err(anyhow!("Missing model generating function!"))),
-            observer: Box::new(|_| {}),
         }
     }
 }
 
-impl<T: LabeledDocument, C: Classifier> TrainerBuilder<T, C> {
+impl<T: LabeledDocument, C: Classifier> ModelTrainer<T, C> {
     pub fn split_ratio(&mut self, ratio: f32) -> &mut Self {
         self.split_ratio = ratio;
         self
@@ -81,16 +77,9 @@ impl<T: LabeledDocument, C: Classifier> TrainerBuilder<T, C> {
         self.method = model_creator;
         self
     }
-    pub fn progress_observer(
-        &mut self,
-        observer: impl FnMut(TrainingProgress) + 'static,
-    ) -> &mut Self {
-        self.observer = Box::new(observer);
-        self
-    }
-    /// Prepare all splits and pass them to the trainer for training and evaluation.
-    pub fn build(&mut self) -> Result<Trainer<'_, T, C>> {
-        let seed = self.seed.unwrap_or_else(rand::random);
+    /// Train explicitly, returning the selected model and its exact feature space.
+    pub fn train(&mut self) -> Result<TrainingOutcome<C>> {
+        let seed = *self.seed.get_or_insert_with(rand::random);
         let splits = split::evaluated_splits(
             &self.documents,
             self.split_ratio,
@@ -99,168 +88,55 @@ impl<T: LabeledDocument, C: Classifier> TrainerBuilder<T, C> {
             seed,
         )?;
         let builder = self.builder.get_or_insert_with(TfIdfBuilder::default);
-        Trainer::new(
-            splits,
-            builder,
-            &mut self.method,
-            &mut self.observer,
-            self.evaluation_strategy,
-            seed,
-        )
-    }
-}
-
-pub struct Trainer<'a, T: LabeledDocument, C: Classifier> {
-    tf_idfs: Vec<TfIdf>,
-    train_test_documents: Vec<TrainTestSplit<'a, T>>,
-    models: Vec<C>,
-    evaluation: Option<EvaluationReport>,
-    progress: TrainingProgress,
-}
-
-/// Owns the selected model and its exact feature space; independent of the builder.
-pub struct TrainingOutcome<C: Classifier> {
-    pub model: C,
-    pub tf_idf: TfIdf,
-    pub evaluation: EvaluationReport,
-    pub progress: TrainingProgress,
-}
-
-impl<'a, T: LabeledDocument, C: Classifier> Trainer<'a, T, C> {
-    #[allow(non_snake_case)]
-    pub fn Builder() -> TrainerBuilder<T, C> {
-        TrainerBuilder::default()
-    }
-
-    /// Models, TF-IDF instances, splits, and reports share the same index.
-    pub fn models(&self) -> &[C] {
-        &self.models
-    }
-    pub fn tf_idfs(&self) -> &[TfIdf] {
-        &self.tf_idfs
-    }
-    pub fn train_test_documents(&self) -> &[TrainTestSplit<'a, T>] {
-        &self.train_test_documents
-    }
-    pub fn evaluation(&self) -> &EvaluationReport {
-        self.evaluation
-            .as_ref()
-            .expect("a constructed trainer has completed evaluation")
-    }
-    pub fn progress(&self) -> TrainingProgress {
-        self.progress
-    }
-
-    pub fn into_best(mut self) -> TrainingOutcome<C> {
-        let index = self.evaluation().selected_split;
-        TrainingOutcome {
-            model: self.models.swap_remove(index),
-            tf_idf: self.tf_idfs.swap_remove(index),
-            evaluation: self
-                .evaluation
-                .take()
-                .expect("a constructed trainer has completed evaluation"),
-            progress: self.progress,
-        }
-    }
-
-    fn new(
-        train_test_documents: Vec<TrainTestSplit<'a, T>>,
-        builder: &TfIdfBuilder,
-        model_creator: &mut ModelCreatingFunction<T, C>,
-        observer: &mut dyn FnMut(TrainingProgress),
-        strategy: EvaluationStrategy,
-        seed: u64,
-    ) -> Result<Self> {
-        let total_splits = train_test_documents.len();
-        crate::invariant!(total_splits > 0, "a trainer needs at least one split");
-        let mut trainer = Self {
-            tf_idfs: Vec::with_capacity(total_splits),
-            models: Vec::with_capacity(total_splits),
-            train_test_documents,
-            evaluation: None,
-            progress: TrainingProgress {
-                state: FittingState::Running,
-                total_splits,
-                ..TrainingProgress::default()
-            },
-        };
-        observer(trainer.progress());
-        let result = trainer.train_and_evaluate(builder, model_creator, observer, strategy, seed);
-        trainer.progress.state = if result.is_ok() {
-            FittingState::Completed
-        } else {
-            FittingState::Failed
-        };
-        observer(trainer.progress());
-        result?;
-        Ok(trainer)
-    }
-
-    fn train_and_evaluate(
-        &mut self,
-        builder: &TfIdfBuilder,
-        model_creator: &mut ModelCreatingFunction<T, C>,
-        observer: &mut dyn FnMut(TrainingProgress),
-        strategy: EvaluationStrategy,
-        seed: u64,
-    ) -> Result<()> {
-        let mut evaluations = Vec::with_capacity(self.train_test_documents.len());
-        for index in 0..self.train_test_documents.len() {
-            let split = &self.train_test_documents[index];
-            crate::invariant!(
-                !split.train_documents.is_empty() && !split.test_documents.is_empty(),
-                "training and test partitions must be nonempty"
-            );
-            let documents: Vec<T> = split
+        let mut candidates = Vec::with_capacity(splits.len());
+        let mut evaluations = Vec::with_capacity(splits.len());
+        for (index, split) in splits.iter().enumerate() {
+            let train_documents: Vec<T> = split
                 .train_documents
                 .iter()
                 .map(|&doc| doc.clone())
                 .collect();
+            let test_documents: Vec<T> = split
+                .test_documents
+                .iter()
+                .map(|&doc| doc.clone())
+                .collect();
             let mut tf_idf = builder.build()?;
-            let train_features = tf_idf.fit_transform(&documents)?;
-            let model = model_creator(documents, &train_features)?;
-            self.tf_idfs.push(tf_idf);
-            self.models.push(model);
-
-            // Only the trainer knows the full denominator. A failed fit never advances it.
-            self.progress.trained_splits = self.models.len();
-            self.progress.percentage = self.progress.trained_splits as f64 * 100.0
-                / self.train_test_documents.len() as f64;
-            observer(self.progress());
-            evaluations.push(self.evaluate_split(index, &train_features)?);
+            let train_features = tf_idf.fit_transform(&train_documents)?;
+            let train_labels: Vec<_> = train_documents
+                .iter()
+                .map(LabeledDocument::label_id)
+                .collect();
+            let test_labels: Vec<_> = test_documents
+                .iter()
+                .map(LabeledDocument::label_id)
+                .collect();
+            let model = (self.method)(train_documents, &train_features)?;
+            let test_features = tf_idf.transform(&test_documents)?;
+            evaluations.push(evaluation::SplitEvaluation::new(
+                index,
+                train_labels.len(),
+                test_labels.len(),
+                evaluation::Metrics::calculate(&train_labels, &model.predict(&train_features))?,
+                evaluation::Metrics::calculate(&test_labels, &model.predict(&test_features))?,
+            ));
+            candidates.push((model, tf_idf));
         }
-        self.evaluation = Some(EvaluationReport::new(strategy, seed, evaluations));
-        Ok(())
+        let evaluation = EvaluationReport::new(self.evaluation_strategy, seed, evaluations);
+        let (model, tf_idf) = candidates.swap_remove(evaluation.selected_split);
+        Ok(TrainingOutcome {
+            model,
+            tf_idf,
+            evaluation,
+        })
     }
+}
 
-    fn evaluate_split(
-        &self,
-        index: usize,
-        train_features: &CsMat<f64>,
-    ) -> Result<evaluation::SplitEvaluation> {
-        let split = &self.train_test_documents[index];
-        let documents: Vec<T> = split
-            .test_documents
-            .iter()
-            .map(|&doc| doc.clone())
-            .collect();
-        let test_features = self.tf_idfs[index].transform(&documents)?;
-        let model = &self.models[index];
-        let train_labels: Vec<_> = split
-            .train_documents
-            .iter()
-            .map(|doc| doc.label())
-            .collect();
-        let test_labels: Vec<_> = split.test_documents.iter().map(|doc| doc.label()).collect();
-        Ok(evaluation::SplitEvaluation::new(
-            index,
-            train_labels.len(),
-            test_labels.len(),
-            evaluation::Metrics::calculate(&train_labels, &model.predict(train_features))?,
-            evaluation::Metrics::calculate(&test_labels, &model.predict(&test_features))?,
-        ))
-    }
+/// Owns the selected classifier and its exact feature space, independent of the trainer.
+pub struct TrainingOutcome<C: Classifier> {
+    pub model: C,
+    pub tf_idf: TfIdf,
+    pub evaluation: EvaluationReport,
 }
 
 #[cfg(test)]

@@ -1,0 +1,50 @@
+[tools]
+rust = "1.96.0"
+node = "26.2.0"
+
+[tasks.dev]
+description = "Start the Rust API server"
+run = "cargo run"
+
+[tasks.build]
+description = "Build the Rust backend"
+run = "cargo build"
+
+[tasks.test]
+description = "Run Rust tests"
+run = "cargo test"
+
+[tasks.check]
+description = "Run Rust tests, Clippy, and formatting checks"
+run = ["cargo test", "cargo clippy --all-targets", "cargo fmt --check"]
+
+[tasks.fmt]
+description = "Format Rust source files"
+run = "cargo fmt"
+
+[tasks."frontend:install"]
+description = "Install frontend dependencies from the lockfile"
+dir = "{{ config_root }}/frontend"
+run = "npm ci"
+
+[tasks."frontend:dev"]
+description = "Start the Astro development server"
+dir = "{{ config_root }}/frontend"
+run = "npm run dev"
+
+[tasks."frontend:build"]
+description = "Build the Astro frontend"
+dir = "{{ config_root }}/frontend"
+run = "npm run build"
+
+[tasks."db:up"]
+description = "Start MongoDB and wait for it to be healthy"
+run = "docker compose up -d --wait mongodb"
+
+[tasks."db:down"]
+description = "Stop MongoDB, preserving its data volume"
+run = "docker compose down"
+
+[tasks."db:logs"]
+description = "Follow MongoDB logs"
+run = "docker compose logs -f mongodb"
