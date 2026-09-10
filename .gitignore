@@ -1,2 +1,4 @@
 /target
 /ocr
+.env.json
+.env

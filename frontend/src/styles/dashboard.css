@@ -1,0 +1,60 @@
+/* Extend shadcn's rail with drag and keyboard resizing. */
+.sidebar-resize {
+  display: block;
+  top: 3.5rem;
+  bottom: 0;
+  right: -0.25rem;
+  left: auto;
+  width: 0.5rem;
+  translate: none;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+  transition: none;
+}
+
+.sidebar-resize::after {
+  width: 0.125rem;
+}
+
+.sidebar-resize:focus-visible::after,
+.sidebar-resize[data-resizing="true"]::after {
+  background: var(--ring);
+}
+
+[data-slot="sidebar-container"][data-resizing="true"],
+[data-slot="sidebar"][data-mobile="true"]:has([data-resizing="true"]),
+[data-slot="sidebar-wrapper"]:has([data-resizing="true"]) [data-slot="sidebar-gap"] {
+  transition: none;
+  user-select: none;
+}
+
+.dashboard-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.5rem;
+  padding-inline: 1rem;
+  border-bottom: 0.0625rem solid var(--border);
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: 1.75rem;
+}
+
+.board h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.375rem;
+  font-weight: 550;
+  letter-spacing: -0.035em;
+}
+
+.board-canvas {
+  min-height: 70dvh;
+}
+
+@media (width < 48rem) {
+  .dashboard-main { padding: 1rem; }
+}

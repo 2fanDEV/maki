@@ -8,7 +8,7 @@ use crate::methods::preprocessing::{
 };
 
 #[derive(
-    schemars::JsonSchema,
+    utoipa::ToSchema,
     Clone,
     Copy,
     Debug,
@@ -29,7 +29,7 @@ pub enum IdfWeightScheme {
 
 #[allow(non_camel_case_types)]
 #[derive(
-    schemars::JsonSchema,
+    utoipa::ToSchema,
     Clone,
     Copy,
     Debug,

@@ -9,13 +9,14 @@ Organize each service using this structure:
 ├── mod.rs
 ├── api/
 │   ├── mod.rs
+│   ├── router.rs
 │   ├── request.rs
 │   └── response.rs
 └── tests.rs
 ```
 
 - Keep service state, business logic, orchestration, and calls to domain code in the service's `mod.rs`.
-- Put `impl Service for <name>Service`, route registration, HTTP extraction, status mapping, SSE formatting, and Aide documentation in the service's `api/mod.rs`. HTTP handlers call the parent service's logic.
+- Put `impl Service for <name>Service` and route registration in the service's `api/mod.rs`. Put HTTP extraction, status mapping, SSE formatting, and Utoipa endpoint documentation alongside the handlers in `api/router.rs`. HTTP handlers call the parent service's logic.
 - Put API request bodies, path/query parameters, and input settings in `api/request.rs`.
 - Put API response types, API errors, and response conversions in `api/response.rs`.
 - Keep API-specific structs and enums in these request/response modules. Derive their schemas there. Reuse shared domain types from their existing modules instead of duplicating or moving them into the API layer.

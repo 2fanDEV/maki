@@ -15,20 +15,20 @@ use crate::{
 };
 
 /// Supported model types. Add variants and their training dispatch together.
-#[derive(schemars::JsonSchema, Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(utoipa::ToSchema, Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ClassifierType {
     NearestCentroid,
 }
 
-#[derive(schemars::JsonSchema, Clone, Debug, Deserialize)]
+#[derive(utoipa::ToSchema, Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TrainingDocument {
     pub name: String,
     pub pages: Vec<String>,
     /// Hexadecimal MongoDB label ID. Each class needs at least two documents.
     #[serde(deserialize_with = "deserialize_label_id")]
-    #[schemars(with = "String")]
+    #[schema(value_type = String)]
     pub label_id: ObjectId,
 }
 
@@ -49,7 +49,7 @@ impl LabeledDocument for TrainingDocument {
     }
 }
 
-#[derive(schemars::JsonSchema, Clone, Debug, Deserialize, Serialize)]
+#[derive(utoipa::ToSchema, Clone, Debug, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct SplitSettings {
     /// Training fraction, strictly between zero and one.
@@ -68,7 +68,7 @@ impl Default for SplitSettings {
     }
 }
 
-#[derive(schemars::JsonSchema, Clone, Debug, Deserialize, Serialize)]
+#[derive(utoipa::ToSchema, Clone, Debug, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct TfIdfSettings {
     pub tf_scheme: TfWeightScheme,
@@ -95,7 +95,7 @@ impl TfIdfSettings {
     }
 }
 
-#[derive(schemars::JsonSchema, Clone, Debug, Deserialize)]
+#[derive(utoipa::ToSchema, Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateTrainerRequest {
     pub classifier: ClassifierType,
@@ -129,12 +129,12 @@ impl CreateTrainerRequest {
     }
 }
 
-#[derive(Deserialize, schemars::JsonSchema)]
+#[derive(Deserialize, utoipa::ToSchema)]
 pub(super) struct ModelPath {
     pub(super) model_id: uuid::Uuid,
 }
 
-#[derive(Deserialize, schemars::JsonSchema)]
+#[derive(Deserialize, utoipa::ToSchema)]
 pub(super) struct TrainerPath {
     pub(super) trainer_id: uuid::Uuid,
 }

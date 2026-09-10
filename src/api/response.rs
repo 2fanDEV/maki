@@ -8,16 +8,12 @@ use serde::Serialize;
 
 use crate::service::ServiceError;
 
-#[derive(Serialize, schemars::JsonSchema)]
+#[derive(Serialize, utoipa::ToSchema)]
 pub(crate) struct ErrorResponse {
     error: String,
 }
 
 pub(crate) struct ApiError(pub StatusCode, pub String);
-
-impl aide::OperationOutput for ApiError {
-    type Inner = ErrorResponse;
-}
 
 impl From<JsonRejection> for ApiError {
     fn from(error: JsonRejection) -> Self {

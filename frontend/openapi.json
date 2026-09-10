@@ -1,0 +1,1035 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Maki API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/documents": {
+      "get": {
+        "description": "Placeholder: returns an empty response.",
+        "operationId": "get_documents",
+        "responses": {
+          "200": {
+            "description": "no content"
+          }
+        }
+      },
+      "post": {
+        "description": "Placeholder: returns an empty response.",
+        "operationId": "classify_documents",
+        "responses": {
+          "200": {
+            "description": "no content"
+          }
+        }
+      },
+      "options": {
+        "description": "Placeholder: returns an empty response.",
+        "operationId": "query_documents",
+        "responses": {
+          "200": {
+            "description": "no content"
+          }
+        }
+      }
+    },
+    "/trainers": {
+      "post": {
+        "description": "Validate label IDs and store an untrained trainer in memory. Does not fit a model.",
+        "operationId": "create_trainer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrainerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainerMetadata"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainers/{trainer_id}": {
+      "get": {
+        "description": "Read trainer configuration, lifecycle state, error, or resulting model ID.",
+        "operationId": "trainer_metadata",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trainer_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainerMetadata"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "plain text",
+            "content": {
+              "text/plain; charset=utf-8": {}
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainers/{trainer_id}/train": {
+      "post": {
+        "description": "Train and evaluate once, awaiting completion. Returns a new model ID. Disconnecting does not cancel training.",
+        "operationId": "train_model",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trainer_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelMetadata"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "plain text",
+            "content": {
+              "text/plain; charset=utf-8": {}
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/{model_id}": {
+      "get": {
+        "description": "Read completed model metadata and evaluation. Resolve current label names through /labels.",
+        "operationId": "model_metadata",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelMetadata"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "plain text",
+            "content": {
+              "text/plain; charset=utf-8": {}
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/labels": {
+      "get": {
+        "description": "List all labels ordered by ID.",
+        "operationId": "list_labels",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LabelResponse"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create a label with a MongoDB-generated ID. Duplicate names are allowed.",
+        "operationId": "create_label",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/labels/{id}": {
+      "get": {
+        "operationId": "get_label",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a label. Document/trainer reference checks are not implemented.",
+        "operationId": "delete_label",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "no content"
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "rename_label",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateTrainerRequest": {
+        "type": "object",
+        "properties": {
+          "classifier": {
+            "$ref": "#/components/schemas/ClassifierType"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrainingDocument"
+            }
+          },
+          "split": {
+            "default": {
+              "ratio": 0.800000011920929,
+              "repetitions": 5,
+              "sampling": "stratified"
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SplitSettings"
+              }
+            ]
+          },
+          "tf_idf": {
+            "default": {
+              "tf_scheme": "raw_count",
+              "idf_scheme": "base",
+              "double_normalization_k": 0.5
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TfIdfSettings"
+              }
+            ]
+          },
+          "evaluation_strategy": {
+            "default": "macro_f1",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationStrategy"
+              }
+            ]
+          },
+          "seed": {
+            "description": "Random seed for reproducible splits. Generated and returned when omitted.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint64",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "classifier",
+          "documents"
+        ]
+      },
+      "ClassifierType": {
+        "description": "Supported model types. Add variants and their training dispatch together.",
+        "type": "string",
+        "enum": [
+          "nearest_centroid"
+        ]
+      },
+      "TrainingDocument": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "label_id": {
+            "description": "Hexadecimal MongoDB label ID. Each class needs at least two documents.",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "pages",
+          "label_id"
+        ]
+      },
+      "SplitSettings": {
+        "type": "object",
+        "properties": {
+          "ratio": {
+            "description": "Training fraction, strictly between zero and one.",
+            "type": "number",
+            "format": "float",
+            "default": 0.800000011920929
+          },
+          "repetitions": {
+            "description": "Number of train/test splits; must be at least one.",
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0,
+            "default": 5
+          },
+          "sampling": {
+            "default": "stratified",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SamplingStrategy"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SamplingStrategy": {
+        "type": "string",
+        "enum": [
+          "random",
+          "stratified"
+        ]
+      },
+      "TfIdfSettings": {
+        "type": "object",
+        "properties": {
+          "tf_scheme": {
+            "default": "raw_count",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TfWeightScheme"
+              }
+            ]
+          },
+          "idf_scheme": {
+            "default": "base",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/IdfWeightScheme"
+              }
+            ]
+          },
+          "double_normalization_k": {
+            "type": "number",
+            "format": "double",
+            "default": 0.5
+          }
+        },
+        "additionalProperties": false
+      },
+      "TfWeightScheme": {
+        "type": "string",
+        "enum": [
+          "binary",
+          "raw_count",
+          "normalization",
+          "double_normalization_half",
+          "double_normalization_variable"
+        ]
+      },
+      "IdfWeightScheme": {
+        "type": "string",
+        "enum": [
+          "base",
+          "smooth",
+          "maximum",
+          "probabilistic"
+        ]
+      },
+      "EvaluationStrategy": {
+        "type": "string",
+        "enum": [
+          "macro_f1",
+          "balanced_accuracy",
+          "matthews_correlation"
+        ]
+      },
+      "TrainerMetadata": {
+        "type": "object",
+        "properties": {
+          "trainer_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "classifier": {
+            "$ref": "#/components/schemas/ClassifierType"
+          },
+          "seed": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          },
+          "label_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "split": {
+            "$ref": "#/components/schemas/SplitSettings"
+          },
+          "tf_idf": {
+            "$ref": "#/components/schemas/TfIdfSettings"
+          },
+          "evaluation_strategy": {
+            "$ref": "#/components/schemas/EvaluationStrategy"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TrainerStatus"
+          },
+          "model_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "trainer_id",
+          "classifier",
+          "seed",
+          "label_ids",
+          "split",
+          "tf_idf",
+          "evaluation_strategy",
+          "status"
+        ]
+      },
+      "TrainerStatus": {
+        "type": "string",
+        "enum": [
+          "created",
+          "training",
+          "completed",
+          "failed"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "TrainerPath": {
+        "type": "object",
+        "properties": {
+          "trainer_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "trainer_id"
+        ]
+      },
+      "ModelMetadata": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trainer_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "classifier": {
+            "$ref": "#/components/schemas/ClassifierType"
+          },
+          "seed": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          },
+          "label_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "feature_count": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          },
+          "split": {
+            "$ref": "#/components/schemas/SplitSettings"
+          },
+          "tf_idf": {
+            "$ref": "#/components/schemas/TfIdfSettings"
+          },
+          "evaluation": {
+            "$ref": "#/components/schemas/EvaluationReport"
+          }
+        },
+        "required": [
+          "model_id",
+          "trainer_id",
+          "classifier",
+          "seed",
+          "label_ids",
+          "feature_count",
+          "split",
+          "tf_idf",
+          "evaluation"
+        ]
+      },
+      "EvaluationReport": {
+        "type": "object",
+        "properties": {
+          "strategy": {
+            "$ref": "#/components/schemas/EvaluationStrategy"
+          },
+          "seed": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          },
+          "score_usage": {
+            "type": "string"
+          },
+          "selected_split": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          },
+          "splits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SplitEvaluation"
+            }
+          },
+          "train_summary": {
+            "$ref": "#/components/schemas/MetricSummary"
+          },
+          "test_summary": {
+            "$ref": "#/components/schemas/MetricSummary"
+          },
+          "gap_summary": {
+            "$ref": "#/components/schemas/MetricSummary"
+          }
+        },
+        "required": [
+          "strategy",
+          "seed",
+          "score_usage",
+          "selected_split",
+          "splits",
+          "train_summary",
+          "test_summary",
+          "gap_summary"
+        ]
+      },
+      "SplitEvaluation": {
+        "type": "object",
+        "properties": {
+          "split_index": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          },
+          "train_samples": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          },
+          "test_samples": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          },
+          "train": {
+            "$ref": "#/components/schemas/Metrics"
+          },
+          "test": {
+            "$ref": "#/components/schemas/Metrics"
+          },
+          "gap": {
+            "$ref": "#/components/schemas/Metrics"
+          }
+        },
+        "required": [
+          "split_index",
+          "train_samples",
+          "test_samples",
+          "train",
+          "test",
+          "gap"
+        ]
+      },
+      "Metrics": {
+        "type": "object",
+        "properties": {
+          "macro_f1": {
+            "type": "number",
+            "format": "double"
+          },
+          "balanced_accuracy": {
+            "type": "number",
+            "format": "double"
+          },
+          "matthews_correlation": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "macro_f1",
+          "balanced_accuracy",
+          "matthews_correlation"
+        ]
+      },
+      "MetricSummary": {
+        "type": "object",
+        "properties": {
+          "mean": {
+            "$ref": "#/components/schemas/Metrics"
+          },
+          "standard_deviation": {
+            "description": "Population standard deviation across the observed splits.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Metrics"
+              }
+            ]
+          }
+        },
+        "required": [
+          "mean",
+          "standard_deviation"
+        ]
+      },
+      "ModelPath": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "model_id"
+        ]
+      },
+      "LabelInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
+      },
+      "LabelResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "LabelPath": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    }
+  }
+}
