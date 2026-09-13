@@ -13,12 +13,6 @@ impl DocumentService {
 
 impl Service for DocumentService {
     fn api_router(self) -> OpenApiRouter {
-        OpenApiRouter::new()
-            .routes(routes!(
-                router::get_documents,
-                router::classify_documents,
-                router::query_documents,
-            ))
-            .with_state(self)
+        OpenApiRouter::new().with_state(self)
     }
 }

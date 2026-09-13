@@ -3,7 +3,7 @@ use rayon::prelude::*;
 use sprs::CsMat;
 
 use crate::methods::preprocessing::{
-    Document,
+    Doc,
     util::{document_frequency::DocumentFrequency, term_frequency::TermFrequency},
 };
 
@@ -116,19 +116,19 @@ impl TfIdf {
         TfIdfBuilder::default()
     }
 
-    pub fn fit<T: Document>(&mut self, documents: &[T]) -> Result<()> {
+    pub fn fit<T: Doc>(&mut self, documents: &[T]) -> Result<()> {
         let term_frequencies = self.term_frequencies(documents);
         self.replace_fitted_state(&term_frequencies, documents.len());
         Ok(())
     }
 
-    pub fn transform<T: Document>(&self, documents: &[T]) -> Result<CsMat<f64>> {
+    pub fn transform<T: Doc>(&self, documents: &[T]) -> Result<CsMat<f64>> {
         self.fitted_state()?;
         let term_frequencies = self.term_frequencies(documents);
         self.transform_term_frequencies(&term_frequencies)
     }
 
-    pub fn fit_transform<T: Document>(&mut self, documents: &[T]) -> Result<CsMat<f64>> {
+    pub fn fit_transform<T: Doc>(&mut self, documents: &[T]) -> Result<CsMat<f64>> {
         let term_frequencies = self.term_frequencies(documents);
         self.replace_fitted_state(&term_frequencies, documents.len());
         self.transform_term_frequencies(&term_frequencies)
@@ -144,7 +144,7 @@ impl TfIdf {
 
     /// Returns raw term counts for each document in input order.
     /// Weighting schemes are applied separately when computing TF-IDF.
-    pub fn term_frequencies<T: Document>(&self, documents: &[T]) -> Vec<TermFrequency> {
+    pub fn term_frequencies<T: Doc>(&self, documents: &[T]) -> Vec<TermFrequency> {
         documents.par_iter().map(TermFrequency::count).collect()
     }
 
@@ -285,7 +285,7 @@ mod tests {
         }
     }
 
-    impl Document for TestDocument {
+    impl Doc for TestDocument {
         fn name(&self) -> &str {
             "test"
         }

@@ -2,10 +2,12 @@
 
 ## Startup
 
-Provide `MONGODB_URI` and `MONGODB_DATABASE` in the process environment, then run
-`cargo run`. The server listens at `127.0.0.1:3000`. Both variables are required;
-no credentials or fallback values are supplied. Put authentication options in
-your connection URI if your MongoDB deployment requires them.
+Copy `.example.env.toml` to `.env.toml`, set `mongodb_uri`,
+`mongodb_database`, and the S3 `region`, then run `cargo run`. The server listens at
+`127.0.0.1:3000`. Both database settings are required; no credentials or fallback
+values are supplied. Put authentication options in your connection URI if your
+MongoDB deployment requires them. `rust_log` defaults to `info`, and
+`rust_log_style` defaults to `auto` when omitted.
 
 The shared MongoDB client is initialized at startup without a ping or application
 query. Initialization does not verify connectivity. Label operations use the
@@ -15,7 +17,7 @@ For the local database, run `docker compose up -d` (or `mise run db:up`). The
 Compose database is bound to localhost and uses authentication with the credentials
 configured in `docker-compose.yaml`. In MongoDB Compass, use host `127.0.0.1`,
 port `27017`, Username / Password authentication, and authentication database
-`admin`. For the app, set `MONGODB_DATABASE` to `maki` and use this URI, replacing
+`admin`. For the app, set `mongodb_database` to `maki` and use this URI, replacing
 the placeholders with the Compose credentials (percent-encode special characters):
 
 ```text
@@ -52,30 +54,22 @@ curl -s http://127.0.0.1:3000/labels \
   -d '{"name":"Fruit"}'
 ```
 
-The response is `201 Created` with `{ "id": "<label-id>", "name": "Fruit" }`.
-Create another label for Vehicle and use the returned IDs in training documents.
+The response is `201 Created` with an empty body.
 
 | Endpoint | Behavior |
 |---|---|
-| `POST /labels` | Create from `{ "name": "Fruit" }`; return `201` |
-| `GET /labels` | List all labels, sorted by ID |
-| `GET /labels/{id}` | Retrieve a label |
-| `PATCH /labels/{id}` | Rename using `{ "name": "New name" }` |
-| `DELETE /labels/{id}` | Delete the label; return `204` |
+| `POST /labels` | Create from `{ "name": "Fruit" }`; return `201` with an empty body |
+| `DELETE /labels/{id}` | Delete and return the removed label |
 
-Names are trimmed and must not be blank. Duplicate names are allowed. Label IDs
-are immutable. Deletion does not check document, trainer, or model references;
-an existing model can retain an ID that no longer resolves through `/labels`.
-
-Classifiers store IDs rather than names. Resolve IDs through the label API to
-display current names, including changes made after training.
+Names are trimmed and must not be blank. Duplicate names are allowed. Deletion
+does not check document, trainer, or model references.
 
 ## Create a trainer, then train
 
 `POST /trainers` validates the configuration and verifies that the supplied label
 IDs exist. It stores an untrained trainer in memory and returns `201 Created`.
 It does not fit TF-IDF or train a classifier. Replace the ID placeholders below
-with IDs returned by the label API.
+with the corresponding label ObjectIds from MongoDB.
 
 ```sh
 curl -s http://127.0.0.1:3000/trainers \

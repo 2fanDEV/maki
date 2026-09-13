@@ -31,10 +31,9 @@ Open http://localhost:4321. Manage the background server with
 
 ## Generate the API specification and types
 
-Start the Rust server from the repository root with `cargo run`, providing
-`MONGODB_URI` and `MONGODB_DATABASE` in its environment. See the root README for
-database setup. OpenAPI generation uses the server’s route registrations and
-does not issue application database queries.
+Start the Rust server from the repository root with `cargo run`, configured by
+`.env.toml`. See the root README for database setup. OpenAPI generation uses the
+server’s route registrations and does not issue application database queries.
 
 With the server running, execute from `frontend`:
 

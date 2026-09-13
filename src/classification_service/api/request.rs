@@ -7,7 +7,7 @@ use crate::{
     methods::{
         EvaluationStrategy, LabeledDocument, SamplingStrategy, SplitStrategy,
         preprocessing::{
-            Document,
+            Doc,
             tfidf::{IdfWeightScheme, TfIdf, TfIdfBuilder, TfWeightScheme},
         },
         validate_training_documents,
@@ -32,7 +32,7 @@ pub struct TrainingDocument {
     pub label_id: ObjectId,
 }
 
-impl Document for TrainingDocument {
+impl Doc for TrainingDocument {
     fn name(&self) -> &str {
         &self.name
     }
