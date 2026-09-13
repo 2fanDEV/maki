@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::collections::hash_map::{Iter, Keys, Values};
 use std::sync::LazyLock;
 
-use crate::methods::preprocessing::Document;
+use crate::methods::preprocessing::Doc;
 use crate::methods::preprocessing::util::merge_counts;
 
 static WORDS: LazyLock<Regex> = LazyLock::new(|| {
@@ -19,7 +19,7 @@ pub struct TermFrequency {
 
 impl TermFrequency {
     /// Sums term occurrences across all documents, not document frequencies for IDF.
-    pub fn count_documents<T: Document>(documents: &[T]) -> Self {
+    pub fn count_documents<T: Doc>(documents: &[T]) -> Self {
         let counts = documents
             .par_iter()
             .map(|document| Self::count(document).counts)
@@ -29,7 +29,7 @@ impl TermFrequency {
 
     /// Counts lowercase Unicode words and numbers across all pages. Punctuation
     /// separates tokens; common words are retained without a stoplist.
-    pub fn count<T: Document>(document: &T) -> Self {
+    pub fn count<T: Doc>(document: &T) -> Self {
         let counts = document
             .pages()
             .par_iter()
@@ -92,7 +92,7 @@ mod tests {
         }
     }
 
-    impl Document for TestDocument {
+    impl Doc for TestDocument {
         fn name(&self) -> &str {
             "test"
         }

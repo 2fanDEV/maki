@@ -1,7 +1,6 @@
 use mongodb::{
     Collection, Database,
     bson::{Document, doc, oid::ObjectId},
-    options::ReturnDocument,
 };
 use serde::{Deserialize, Serialize};
 
@@ -42,42 +41,11 @@ impl LabelService {
         Ok(Label { id, name })
     }
 
-    pub async fn list(&self) -> Result<Vec<Label>, ServiceError> {
-        let mut cursor = self.labels.find(doc! {}).sort(doc! { "_id": 1 }).await?;
-        let mut labels = Vec::new();
-        while cursor.advance().await? {
-            labels.push(cursor.deserialize_current()?);
-        }
-        Ok(labels)
-    }
-
-    pub async fn get(&self, id: ObjectId) -> Result<Label, ServiceError> {
+    pub async fn delete(&self, id: ObjectId) -> Result<Label, ServiceError> {
         self.labels
-            .find_one(doc! { "_id": id })
+            .find_one_and_delete(doc! { "_id": id })
             .await?
             .ok_or(ServiceError::NotFound("unknown label"))
-    }
-
-    pub async fn rename(&self, id: ObjectId, name: &str) -> Result<Label, ServiceError> {
-        let name = Self::name(name)?;
-        self.labels
-            .find_one_and_update(doc! { "_id": id }, doc! { "$set": { "name": name } })
-            .return_document(ReturnDocument::After)
-            .await?
-            .ok_or(ServiceError::NotFound("unknown label"))
-    }
-
-    pub async fn delete(&self, id: ObjectId) -> Result<(), ServiceError> {
-        if self
-            .labels
-            .delete_one(doc! { "_id": id })
-            .await?
-            .deleted_count
-            == 0
-        {
-            return Err(ServiceError::NotFound("unknown label"));
-        }
-        Ok(())
     }
 
     /// Used at trainer creation; deletion/reference protection is intentionally deferred.
