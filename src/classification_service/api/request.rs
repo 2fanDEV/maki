@@ -1,4 +1,5 @@
 use anyhow::Result;
+use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -25,8 +26,10 @@ pub enum ClassifierType {
 pub struct TrainingDocument {
     pub name: String,
     pub pages: Vec<String>,
-    /// Finite numeric class label. Each class needs at least two documents.
-    pub label: f64,
+    /// Hexadecimal MongoDB label ID. Each class needs at least two documents.
+    #[serde(deserialize_with = "deserialize_label_id")]
+    #[schemars(with = "String")]
+    pub label_id: ObjectId,
 }
 
 impl Document for TrainingDocument {
@@ -41,8 +44,8 @@ impl Document for TrainingDocument {
     }
 }
 impl LabeledDocument for TrainingDocument {
-    fn label(&self) -> f64 {
-        self.label
+    fn label_id(&self) -> ObjectId {
+        self.label_id
     }
 }
 
@@ -94,7 +97,7 @@ impl TfIdfSettings {
 
 #[derive(schemars::JsonSchema, Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct CreateModelRequest {
+pub struct CreateTrainerRequest {
     pub classifier: ClassifierType,
     pub documents: Vec<TrainingDocument>,
     #[serde(default)]
@@ -107,7 +110,7 @@ pub struct CreateModelRequest {
     pub seed: Option<u64>,
 }
 
-impl CreateModelRequest {
+impl CreateTrainerRequest {
     pub(in crate::classification_service) fn validate(&self) -> Result<()> {
         validate_training_documents(
             &self.documents,
@@ -129,4 +132,16 @@ impl CreateModelRequest {
 #[derive(Deserialize, schemars::JsonSchema)]
 pub(super) struct ModelPath {
     pub(super) model_id: uuid::Uuid,
+}
+
+#[derive(Deserialize, schemars::JsonSchema)]
+pub(super) struct TrainerPath {
+    pub(super) trainer_id: uuid::Uuid,
+}
+
+fn deserialize_label_id<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<ObjectId, D::Error> {
+    let id = String::deserialize(deserializer)?;
+    ObjectId::parse_str(id).map_err(serde::de::Error::custom)
 }

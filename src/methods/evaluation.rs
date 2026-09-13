@@ -1,4 +1,5 @@
 use anyhow::Result;
+use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 use crate::invariant;
@@ -23,24 +24,15 @@ pub struct Metrics {
 
 impl Metrics {
     /// All metrics use the same confusion matrix, including binary macro-F1.
-    pub fn calculate(expected: &[f64], predicted: &[f64]) -> Result<Self> {
+    pub fn calculate(expected: &[ObjectId], predicted: &[ObjectId]) -> Result<Self> {
         invariant!(
-            !expected.is_empty()
-                && expected.len() == predicted.len()
-                && expected
-                    .iter()
-                    .chain(predicted)
-                    .all(|value| value.is_finite()),
-            "metrics require equally sized, nonempty, finite label vectors"
+            !expected.is_empty() && expected.len() == predicted.len(),
+            "metrics require equally sized, nonempty label vectors"
         );
         let mut labels: Vec<_> = expected.iter().chain(predicted).copied().collect();
-        labels.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        labels.sort_unstable();
         labels.dedup();
-        let index = |label: &f64| {
-            labels
-                .binary_search_by(|value| value.partial_cmp(label).unwrap())
-                .unwrap()
-        };
+        let index = |label: &ObjectId| labels.binary_search(label).unwrap();
         let mut matrix = vec![vec![0usize; labels.len()]; labels.len()];
         for (actual, predicted) in expected.iter().zip(predicted) {
             matrix[index(actual)][index(predicted)] += 1;
@@ -202,13 +194,20 @@ impl EvaluationReport {
 mod tests {
     use super::*;
 
+    fn labels(values: &[u8]) -> Vec<ObjectId> {
+        values
+            .iter()
+            .map(|&value| ObjectId::from_bytes([value; 12]))
+            .collect()
+    }
+
     fn close(actual: f64, expected: f64) {
         assert!((actual - expected).abs() < 1e-12, "{actual} != {expected}");
     }
 
     #[test]
     fn binary_macro_f1_includes_both_classes_and_handles_imbalance() {
-        let metrics = Metrics::calculate(&[0., 0., 0., 1.], &[0., 0., 0., 0.]).unwrap();
+        let metrics = Metrics::calculate(&labels(&[0, 0, 0, 1]), &labels(&[0, 0, 0, 0])).unwrap();
         close(metrics.macro_f1, 3.0 / 7.0);
         close(metrics.balanced_accuracy, 0.5);
         close(metrics.matthews_correlation, 0.0);
@@ -217,7 +216,7 @@ mod tests {
     #[test]
     fn multiclass_metrics_share_confusion_counts() {
         let metrics =
-            Metrics::calculate(&[0., 0., 1., 1., 2., 2.], &[0., 1., 1., 1., 2., 0.]).unwrap();
+            Metrics::calculate(&labels(&[0, 0, 1, 1, 2, 2]), &labels(&[0, 1, 1, 1, 2, 0])).unwrap();
         close(metrics.macro_f1, (0.5 + 0.8 + 2.0 / 3.0) / 3.0);
         close(metrics.balanced_accuracy, 2.0 / 3.0);
         close(
@@ -228,7 +227,7 @@ mod tests {
 
     #[test]
     fn degenerate_and_wrong_predictions_have_finite_scores() {
-        let metrics = Metrics::calculate(&[5., 5.], &[5., 5.]).unwrap();
+        let metrics = Metrics::calculate(&labels(&[5, 5]), &labels(&[5, 5])).unwrap();
         assert_eq!(
             metrics,
             Metrics {
@@ -237,7 +236,7 @@ mod tests {
                 matthews_correlation: 0.
             }
         );
-        let wrong = Metrics::calculate(&[0., 1.], &[1., 0.]).unwrap();
+        let wrong = Metrics::calculate(&labels(&[0, 1]), &labels(&[1, 0])).unwrap();
         assert_eq!(
             wrong,
             Metrics {
@@ -246,11 +245,8 @@ mod tests {
                 matthews_correlation: -1.
             }
         );
-        let zero = Metrics::calculate(&[-0., 0.], &[0., -0.]).unwrap();
-        assert_eq!(zero.macro_f1, 1.);
         assert!(Metrics::calculate(&[], &[]).is_err());
-        assert!(Metrics::calculate(&[0.], &[]).is_err());
-        assert!(Metrics::calculate(&[f64::NAN], &[0.]).is_err());
+        assert!(Metrics::calculate(&labels(&[0]), &[]).is_err());
     }
 
     #[test]

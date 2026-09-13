@@ -54,10 +54,7 @@ pub(crate) fn validate_training_documents<T: super::LabeledDocument>(
         ratio.is_finite() && ratio > 0.0 && ratio < 1.0 && strategy.repetitions() > 0,
         "evaluated training requires a ratio between zero and one and at least one split"
     );
-    invariant!(
-        !documents.is_empty() && documents.iter().all(|doc| doc.label().is_finite()),
-        "training documents must be nonempty and have finite labels"
-    );
+    invariant!(!documents.is_empty(), "training documents must be nonempty");
     let groups = class_groups(documents);
     invariant!(
         groups.iter().all(|group| group.len() >= 2),
@@ -75,12 +72,12 @@ pub(crate) fn validate_training_documents<T: super::LabeledDocument>(
 
 fn class_groups<T: super::LabeledDocument>(documents: &[T]) -> Vec<Vec<&T>> {
     let mut sorted: Vec<_> = documents.iter().collect();
-    sorted.sort_by(|a, b| a.label().partial_cmp(&b.label()).unwrap());
+    sorted.sort_by_key(|doc| doc.label_id());
     let mut groups: Vec<Vec<&T>> = Vec::new();
     for document in sorted {
         if let Some(group) = groups
             .last_mut()
-            .filter(|group| group[0].label() == document.label())
+            .filter(|group| group[0].label_id() == document.label_id())
         {
             group.push(document);
         } else {
