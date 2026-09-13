@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::label_service::Label;
 
-#[derive(Serialize, schemars::JsonSchema)]
+#[derive(Serialize, utoipa::ToSchema)]
 pub(super) struct LabelResponse {
     pub id: String,
     pub name: String,

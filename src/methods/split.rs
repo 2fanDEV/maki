@@ -17,7 +17,7 @@ pub struct TrainTestSplit<'a, T> {
 }
 
 #[derive(
-    schemars::JsonSchema,
+    utoipa::ToSchema,
     Clone,
     Copy,
     Debug,

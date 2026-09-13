@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-aide = { version = "0.15.1", features = ["axum-json", "swagger"] }
 anyhow = "1.0.104"
 axum = "0.8.9"
+config = { version = "0.15.25", default-features = false, features = ["toml"] }
 env_logger = "0.11.11"
 log = "0.4.34"
 mongodb = "3.9.0"
@@ -14,13 +14,18 @@ ndarray = "0.16.1"
 rand = "0.10.2"
 rayon = "1.12.0"
 regex = "1.13.1"
-schemars = { version = "0.9", features = ["uuid1"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 smartcore = "0.6.14"
 sprs = "=0.11.5"
 tokio = { version = "1.53.1", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
+utoipa = { version = "5.5.0", features = ["axum_extras", "uuid"] }
+utoipa-axum = "0.2.0"
+utoipa-swagger-ui = { version = "9.0.2", default-features = false, features = ["axum", "vendored"] }
 uuid = { version = "1.25.0", features = ["serde", "v4"] }
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
+aws-sdk-s3control = "1.128.0"
+aws-sdk-s3 = "1.146.1"
 
 [dev-dependencies]
 rstest = { version = "0.26.1", default-features = false }

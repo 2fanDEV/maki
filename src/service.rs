@@ -1,5 +1,5 @@
-use aide::axum::ApiRouter;
 use axum::Router;
+use utoipa_axum::router::OpenApiRouter;
 
 #[derive(Debug)]
 pub enum ServiceError {
@@ -16,7 +16,7 @@ impl From<mongodb::error::Error> for ServiceError {
 }
 
 pub trait Service: Sized {
-    fn api_router(self) -> ApiRouter;
+    fn api_router(self) -> OpenApiRouter;
 
     fn router(self) -> Router {
         self.api_router().into()

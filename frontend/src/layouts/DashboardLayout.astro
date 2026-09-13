@@ -1,0 +1,27 @@
+---
+import '@/styles/global.css';
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>Maki</title>
+    <script is:inline>
+      try {
+        document.documentElement.classList.toggle('dark', localStorage.getItem('maki-theme') !== 'light');
+      } catch {
+        // Dark mode remains the default when storage is unavailable.
+      }
+    </script>
+  </head>
+  <body><slot /></body>
+</html>
+
+<style>
+  :global(html) { color-scheme: light; }
+  :global(html.dark) { color-scheme: dark; }
+  :global(body) { margin: 0; }
+</style>

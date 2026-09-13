@@ -4,7 +4,7 @@ use uuid::Uuid;
 use super::request::{ClassifierType, SplitSettings, TfIdfSettings};
 use crate::methods::{EvaluationReport, EvaluationStrategy};
 
-#[derive(schemars::JsonSchema, Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[derive(utoipa::ToSchema, Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TrainerStatus {
     Created,
@@ -13,7 +13,7 @@ pub enum TrainerStatus {
     Failed,
 }
 
-#[derive(schemars::JsonSchema, Clone, Debug, Serialize)]
+#[derive(utoipa::ToSchema, Clone, Debug, Serialize)]
 pub struct TrainerMetadata {
     pub trainer_id: Uuid,
     pub classifier: ClassifierType,
@@ -27,7 +27,7 @@ pub struct TrainerMetadata {
     pub error: Option<String>,
 }
 
-#[derive(schemars::JsonSchema, Clone, Debug, Serialize)]
+#[derive(utoipa::ToSchema, Clone, Debug, Serialize)]
 pub struct ModelMetadata {
     pub model_id: Uuid,
     pub trainer_id: Uuid,

@@ -1,10 +1,8 @@
-use aide::{
-    axum::ApiRouter,
-    openapi::{Info, OpenApi},
-    swagger::Swagger,
-};
-use axum::{Extension, Router, http::header, routing::get};
+use axum::{Extension, Router};
 use mongodb::Database;
+use utoipa::openapi::{Info, OpenApi, path::Paths};
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     classification_service::ClassificationService, document_service::DocumentService,
@@ -15,16 +13,11 @@ pub(crate) mod response;
 
 pub fn router(database: Database) -> Router {
     let labels = LabelService::new(&database);
-    let mut api = OpenApi {
-        info: Info {
-            title: "Maki API".into(),
-            version: env!("CARGO_PKG_VERSION").into(),
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-    let router = ApiRouter::new()
-        .route("/swagger", Swagger::new("/openapi.json").axum_route())
+    let api = OpenApi::new(
+        Info::new("Maki API", env!("CARGO_PKG_VERSION")),
+        Paths::new(),
+    );
+    let (router, api) = OpenApiRouter::with_openapi(api)
         .nest(
             DocumentService::BASE_PATH,
             DocumentService::default().api_router(),
@@ -33,13 +26,7 @@ pub fn router(database: Database) -> Router {
         .merge(labels.clone().api_router())
         .layer(Extension(labels))
         .layer(Extension(database))
-        .finish_api(&mut api);
-    let spec = axum::body::Bytes::from(serde_json::to_vec(&api).expect("OpenAPI is serializable"));
-    router.route(
-        "/openapi.json",
-        get(move || {
-            let spec = spec.clone();
-            async move { ([(header::CONTENT_TYPE, "application/json")], spec) }
-        }),
-    )
+        .split_for_parts();
+
+    router.merge(SwaggerUi::new("/swagger").url("/openapi.json", api))
 }

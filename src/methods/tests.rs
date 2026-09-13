@@ -1,7 +1,7 @@
 use super::*;
 use classifiers::NearestCentroid;
 use mongodb::bson::oid::ObjectId;
-use preprocessing::{Document, tfidf::IdfWeightScheme};
+use preprocessing::{Doc, tfidf::IdfWeightScheme};
 use std::sync::{Arc, Mutex};
 
 fn label(value: u8) -> ObjectId {
@@ -15,7 +15,7 @@ struct TestDocument {
     label: ObjectId,
 }
 
-impl Document for TestDocument {
+impl Doc for TestDocument {
     fn name(&self) -> &str {
         &self.name
     }
