@@ -53,7 +53,8 @@ impl DocumentFrequency {
 
 #[cfg(test)]
 mod tests {
-    use crate::methods::preprocessing::Document;
+
+    use crate::methods::preprocessing::Doc;
 
     use super::*;
     use rstest::rstest;
@@ -61,7 +62,7 @@ mod tests {
     #[derive(Clone)]
     struct TestDocument(Vec<String>);
 
-    impl Document for TestDocument {
+    impl Doc for TestDocument {
         fn name(&self) -> &str {
             "test"
         }

@@ -1,21 +1,15 @@
-use axum::extract::State;
+use axum::{Extension, Json, extract::State, http::StatusCode};
 
-use crate::document_service::DocumentService;
+use crate::{
+    api::response::ApiError,
+    document_service::{DocumentService, api::request::UploadDocumentRequest},
+    label_service::LabelService,
+};
 
-/// Placeholder: returns an empty response.
-#[utoipa::path(get, path = "/", responses((status = 200)))]
-pub(super) async fn get_documents(State(service): State<DocumentService>) {
-    service.get_documents().await;
-}
-
-/// Placeholder: returns an empty response.
-#[utoipa::path(post, path = "/", responses((status = 200)))]
-pub(super) async fn classify_documents(State(service): State<DocumentService>) {
-    service.classify_documents().await;
-}
-
-/// Placeholder: returns an empty response.
-#[utoipa::path(options, path = "/", responses((status = 200)))]
-pub(super) async fn query_documents(State(service): State<DocumentService>) {
-    service.query_documents().await;
+async fn upload_document(
+    State(service): State<DocumentService>,
+    Extension(service): Extension<LabelService>,
+    Json(payload): Json<UploadDocumentRequest>,
+) -> Result<StatusCode, ApiError> {
+    Ok(StatusCode::CREATED)
 }

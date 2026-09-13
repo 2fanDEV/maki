@@ -93,8 +93,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description List all labels ordered by ID. */
-        get: operations["list_labels"];
+        get?: never;
         put?: never;
         /** @description Create a label with a MongoDB-generated ID. Duplicate names are allowed. */
         post: operations["create_label"];
@@ -111,14 +110,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_label"];
+        get?: never;
         put?: never;
         post?: never;
         /** @description Delete a label. Document/trainer reference checks are not implemented. */
         delete: operations["delete_label"];
         options?: never;
         head?: never;
-        patch: operations["rename_label"];
+        patch?: never;
         trace?: never;
     };
 }
@@ -283,9 +282,6 @@ export interface components {
         LabelResponse: {
             id: string;
             name: string;
-        };
-        LabelPath: {
-            id: string;
         };
     };
     responses: never;
@@ -535,33 +531,6 @@ export interface operations {
             };
         };
     };
-    list_labels: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LabelResponse"][];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     create_label: {
         parameters: {
             query?: never;
@@ -579,9 +548,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["LabelResponse"];
-                };
+                content?: never;
             };
             400: {
                 headers: {
@@ -592,51 +559,6 @@ export interface operations {
                 };
             };
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    get_label: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LabelResponse"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -665,54 +587,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description no content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    rename_label: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LabelInput"];
-            };
-        };
-        responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -730,14 +604,6 @@ export interface operations {
                 };
             };
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            422: {
                 headers: {
                     [name: string]: unknown;
                 };
