@@ -11,17 +11,14 @@ use crate::{
 
 pub(crate) mod response;
 
-pub fn router(database: Database) -> Router {
+pub fn router(database: Database, documents: DocumentService) -> Router {
     let labels = LabelService::new(&database);
     let api = OpenApi::new(
         Info::new("Maki API", env!("CARGO_PKG_VERSION")),
         Paths::new(),
     );
     let (router, api) = OpenApiRouter::with_openapi(api)
-        .nest(
-            DocumentService::BASE_PATH,
-            DocumentService::default().api_router(),
-        )
+        .nest(DocumentService::BASE_PATH, documents.api_router())
         .merge(ClassificationService::default().api_router())
         .merge(labels.clone().api_router())
         .layer(Extension(labels))

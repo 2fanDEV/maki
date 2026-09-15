@@ -7,8 +7,8 @@ use crate::{
 };
 
 async fn upload_document(
-    State(service): State<DocumentService>,
-    Extension(service): Extension<LabelService>,
+    State(document_service): State<DocumentService>,
+    Extension(label_service): Extension<LabelService>,
     Json(payload): Json<UploadDocumentRequest>,
 ) -> Result<StatusCode, ApiError> {
     Ok(StatusCode::CREATED)

@@ -12,10 +12,9 @@ pub struct UploadDocumentRequest {
     pub metadata: serde_json::Value,
 }
 
-#[derive(Deserialize, utoipa::ToSchema)]#[serde(deny_unknown_fields)]
+#[derive(Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct DocumentStack {
     pub name: String,
     pub documents: Vec<Uuid>,
-}
-
 }

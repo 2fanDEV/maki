@@ -1,4 +1,4 @@
-use utoipa_axum::{router::OpenApiRouter, routes};
+use utoipa_axum::router::OpenApiRouter;
 
 use super::DocumentService;
 use crate::service::Service;

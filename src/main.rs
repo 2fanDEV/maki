@@ -10,7 +10,9 @@ async fn main() -> anyhow::Result<()> {
         &config.database.mongodb_database,
     )
     .await?;
-    let app = maki::api::router(database);
+    let documents =
+        maki::document_service::DocumentService::new(config.aws.region.as_deref()).await?;
+    let app = maki::api::router(database, documents);
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
 
     axum::serve(listener, app).await?;

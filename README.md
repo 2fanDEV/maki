@@ -2,11 +2,12 @@
 
 ## Startup
 
-Copy `.example.env.toml` to `.env.toml`, set `mongodb_uri`,
-`mongodb_database`, and the S3 `region`, then run `cargo run`. The server listens at
-`127.0.0.1:3000`. Both database settings are required; no credentials or fallback
-values are supplied. Put authentication options in your connection URI if your
-MongoDB deployment requires them. `rust_log` defaults to `info`, and
+Copy `.example.env.toml` to `.env.toml`, set `mongodb_uri` and
+`mongodb_database`, then run `cargo run`. The AWS `region` setting is optional;
+when omitted, the AWS SDK checks `AWS_REGION` and `AWS_DEFAULT_REGION`. The server
+listens at `127.0.0.1:3000`. Both database settings are required; no credentials or
+fallback values are supplied. Put authentication options in your connection URI
+if your MongoDB deployment requires them. `rust_log` defaults to `info`, and
 `rust_log_style` defaults to `auto` when omitted.
 
 The shared MongoDB client is initialized at startup without a ping or application
