@@ -23,9 +23,11 @@ pub struct LoggingConfig {
     pub rust_log_style: String,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Clone, Default, Deserialize)]
 pub struct AwsConfig {
+    pub account_id: Option<String>,
     pub region: Option<String>,
+    pub default_bucket: Option<String>,
 }
 
 pub fn load() -> Result<AppConfig> {
