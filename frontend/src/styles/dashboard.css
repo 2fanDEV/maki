@@ -1,3 +1,16 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100svh;
+}
+
+.dashboard-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--background);
+}
+
 /* Extend shadcn's rail with drag and keyboard resizing. */
 .sidebar-resize {
   display: block;
@@ -23,7 +36,6 @@
 }
 
 [data-slot="sidebar-container"][data-resizing="true"],
-[data-slot="sidebar"][data-mobile="true"]:has([data-resizing="true"]),
 [data-slot="sidebar-wrapper"]:has([data-resizing="true"]) [data-slot="sidebar-gap"] {
   transition: none;
   user-select: none;
@@ -53,8 +65,4 @@
 
 .board-canvas {
   min-height: 70dvh;
-}
-
-@media (width < 48rem) {
-  .dashboard-main { padding: 1rem; }
 }

@@ -3,7 +3,7 @@ import openapiTS, { astToString } from 'openapi-typescript';
 
 const specUrl = process.env.OPENAPI_URL ?? 'http://127.0.0.1:3000/openapi.json';
 const specFile = new URL('../openapi.json', import.meta.url);
-const typesFile = new URL('../src/api/schema.d.ts', import.meta.url);
+const typesFile = new URL('../src/lib/api/v1.d.ts', import.meta.url);
 
 let stage = 'fetch the OpenAPI specification';
 

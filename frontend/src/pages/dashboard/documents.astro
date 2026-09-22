@@ -1,0 +1,8 @@
+---
+import { Documents } from '@/components/boards/documents/Documents';
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout activeBoard="documents">
+  <Documents client:load />
+</DashboardLayout>
