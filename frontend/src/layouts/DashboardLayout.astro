@@ -26,7 +26,40 @@ if (!currentBoard) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
     <title>{currentBoard.name} | Maki</title>
-    <script is:inline src="/dashboard-preferences.js"></script>
+    <script is:inline>
+      // Apply before first paint, while the bundled store script is still loading.
+      (() => {
+        let dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        try {
+          const theme = localStorage.getItem('maki-theme');
+          if (theme === 'light' || theme === 'dark') dark = theme === 'dark';
+        } catch {
+          // Use the system preference when storage is unavailable.
+        }
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
+    <script>
+      import { Theme, useThemeStore, useWebpageStore } from '@/state/zustand';
+
+      useWebpageStore.getState().initState();
+      useThemeStore.getState().initTheme();
+
+      function applyTheme(root = document.documentElement) {
+        root.classList.toggle('dark', useThemeStore.getState().resolvedTheme === Theme.DARK);
+      }
+
+      applyTheme();
+      useThemeStore.subscribe(() => applyTheme());
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ({ matches }) => {
+        if (useThemeStore.getState().theme === Theme.SYSTEM) {
+          useThemeStore.setState({ resolvedTheme: matches ? Theme.DARK : Theme.LIGHT });
+        }
+      });
+      document.addEventListener('astro:before-swap', (event) => {
+        applyTheme(event.newDocument.documentElement);
+      });
+    </script>
     <ClientRouter fallback="swap" />
   </head>
   <body>

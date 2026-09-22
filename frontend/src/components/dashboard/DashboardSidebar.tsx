@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useState,
   type CSSProperties,
   type KeyboardEvent,
@@ -21,6 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { boards, type BoardId } from '@/lib/boards';
+import { MAXIMUM_WIDTH, MINIMUM_WIDTH, SidebarState, useWebpageStore } from '@/state/zustand';
 
 type Props = {
   activeBoard: BoardId;
@@ -32,61 +32,24 @@ const boardIcons = {
   'bar-chart': BarChart3,
 };
 
-const DEFAULT_WIDTH = 15;
-const MINIMUM_WIDTH = 12;
-const MAXIMUM_WIDTH = 32;
-const WIDTH_KEY = 'maki-sidebar-width';
-
-function storedWidth() {
-  try {
-    const width = Number(sessionStorage.getItem(WIDTH_KEY));
-    if (width >= MINIMUM_WIDTH && width <= MAXIMUM_WIDTH) return width;
-  } catch {
-    // The default remains available when session storage is unavailable.
-  }
-
-  return DEFAULT_WIDTH;
-}
-
-function storedSidebarOpen() {
-  const entry = document.cookie
-    .split('; ')
-    .find((part) => part.startsWith('sidebar_state='));
-  return entry?.split('=')[1] !== 'false';
-}
-
 export function DashboardSidebar({ activeBoard }: Props) {
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [open, setOpen] = useState(true);
-
-  useEffect(() => {
-    setWidth(storedWidth());
-    setOpen(storedSidebarOpen());
-  }, []);
-
-  function changeWidth(next: number) {
-    const width = Math.min(MAXIMUM_WIDTH, Math.max(MINIMUM_WIDTH, next));
-    setWidth(width);
-
-    try {
-      sessionStorage.setItem(WIDTH_KEY, String(width));
-    } catch {
-      // Resizing still works for this page when storage is unavailable.
-    }
-  }
+  const sidebar = useWebpageStore(state => state.sidebar);
+  const toggle = useWebpageStore(state => state.toggleSidebar);
+  const width = useWebpageStore(state => state.width);
+  const setWidth = useWebpageStore(state => state.setWidth);
 
   return (
     <TooltipProvider>
       <SidebarProvider
         className="w-auto shrink-0"
-        open={open}
-        onOpenChange={setOpen}
+        open={sidebar === SidebarState.OPENED}
+        onOpenChange={() => toggle()}
         style={{ '--sidebar-width': `${width}vw`, '--sidebar-width-icon': '3vw' } as CSSProperties}
       >
         <DashboardSidebarContent
           activeBoard={activeBoard}
           width={width}
-          onWidthChange={changeWidth}
+          onWidthChange={setWidth}
         />
       </SidebarProvider>
     </TooltipProvider>
