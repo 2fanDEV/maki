@@ -1,27 +1,49 @@
 ---
+import { ClientRouter } from 'astro:transitions';
+import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
+import { DashboardTopbar } from '@/components/dashboard/DashboardTopbar';
+import { boards, type BoardId } from '@/lib/boards';
 import '@/styles/global.css';
+import '@/styles/dashboard.css';
+
+type Props = {
+  activeBoard: BoardId;
+};
+
+const { activeBoard } = Astro.props;
+const currentBoard = boards.find((board) => board.id === activeBoard);
+
+if (!currentBoard) {
+  throw new Error(`Unknown dashboard board: ${activeBoard}`);
+}
+
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" transition:animate="none">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
-    <title>Maki</title>
-    <script is:inline>
-      try {
-        document.documentElement.classList.toggle('dark', localStorage.getItem('maki-theme') !== 'light');
-      } catch {
-        // Dark mode remains the default when storage is unavailable.
-      }
-    </script>
+    <title>{currentBoard.name} | Maki</title>
+    <script is:inline src="/dashboard-preferences.js"></script>
+    <ClientRouter fallback="swap" />
   </head>
-  <body><slot /></body>
+  <body>
+    <div class="dashboard-layout">
+      <DashboardSidebar
+        activeBoard={activeBoard}
+        client:load
+        transition:persist="dashboard-sidebar"
+      />
+      <div class="dashboard-content">
+        <DashboardTopbar client:load transition:persist="dashboard-topbar" />
+        <main class="dashboard-main">
+          <section class="board" aria-labelledby={`board-title-${activeBoard}`}>
+            <slot />
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
 </html>
-
-<style>
-  :global(html) { color-scheme: light; }
-  :global(html.dark) { color-scheme: dark; }
-  :global(body) { margin: 0; }
-</style>

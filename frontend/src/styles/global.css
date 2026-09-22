@@ -123,8 +123,13 @@
     }
   body {
     @apply bg-background text-foreground;
+    margin: 0;
     }
   html {
     @apply font-sans;
+    color-scheme: light;
+    }
+  html.dark {
+    color-scheme: dark;
     }
 }

@@ -1,19 +1,18 @@
 # Maki frontend
 
-The Astro frontend renders an interactive dashboard with Documents,
-Trainers, Models, and Evaluations boards. One sidebar entry is selected at a time;
-each opens its own board, currently containing only a heading. No API calls or
-board-specific features are included yet.
+The Astro frontend renders a dashboard with Documents, Models, and Evaluations
+boards. Each board has a direct `/dashboard/...` route and is composed into the
+Astro-owned dashboard shell. No API calls or board-specific data features are
+included yet.
 
-The shadcn Sidebar starts at 15vw on desktop. Drag its rail to resize, or focus
+The shadcn sidebar starts at 15vw on desktop. Drag its rail to resize, or focus
 the separator and use the left/right arrow keys (Home/End select the
 minimum/maximum). Its trigger collapses it to icons; expanding restores its
-previous width. On narrow screens, the trigger opens shadcn's mobile drawer at
-60vw, and selecting a board closes the drawer. Desktop and mobile widths are
-maintained separately for the current session. Cmd/Ctrl+B also toggles the sidebar.
+previous width. The desktop width is maintained for the current session.
+Cmd/Ctrl+B also toggles the sidebar. The dashboard uses a desktop-only layout.
 
-Dark mode is the default. The shadcn Switch between the sun/moon icons at the top
-right controls dark mode and saves the choice locally for the next visit.
+Dark mode is the default. The switch between the sun/moon icons at the top right
+controls dark mode and saves the choice locally for the next visit.
 
 ## Install and run
 
@@ -67,19 +66,21 @@ shared stylesheet at `src/styles/global.css`, imported by the dashboard layout.
 The shadcn configuration is in `components.json`: Base UI, Nova style, neutral
 colors, Lucide icons, and the locally bundled Geist font.
 
-The `@/` import alias resolves to `src/`. Navigation uses shadcn's SidebarProvider,
-Sidebar, SidebarMenu, SidebarMenuButton, SidebarTrigger, and SidebarRail. Its
-SidebarInset wraps the board area; the theme control uses shadcn's Switch.
-The generated Sidebar forwards its style to the mobile drawer so viewport-based
-widths work there too. The rail adds pointer/keyboard resizing while collapse and
-mobile dialog behavior remain managed by shadcn.
+The `@/` import alias resolves to `src/`. Astro owns the board routes and composes
+the dashboard layout. The shadcn sidebar and top bar are separate React islands
+with `transition:persist`: navigation updates the active sidebar link without
+remounting either island or resetting collapse, width, or theme state. The board
+slot is outside both islands, so only the selected board is replaced. Navigation
+uses Astro's client router with ordinary links and no page-transition animation;
+board URLs remain directly addressable and work with browser history. The sidebar
+and top bar hydrate on page load.
 Add further components when needed using `npx shadcn add COMPONENT` from this
 directory, replacing `COMPONENT` with the component name.
 
-Interactive React components used in Astro need a hydration directive such as
-`client:load`. Keep event handlers and shared interactive state inside React
-components. The dashboard is one React island hydrated with `client:load`;
-navigation, resizing, and theme switching stay local to the browser.
+Interactive React components used in Astro need a hydration directive. The
+sidebar and top bar use `client:load`, and Documents uses its own `client:load`
+island for the action dropdown. Keep board event handlers
+inside their board island rather than passing functions through Astro.
 
 ## Check and build
 

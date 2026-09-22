@@ -7,7 +7,8 @@ use std::path::Path;
 pub struct AppConfig {
     pub database: DatabaseConfig,
     pub logging: LoggingConfig,
-    pub s3: S3Config,
+    #[serde(default)]
+    pub aws: AwsConfig,
 }
 
 #[derive(Deserialize)]
@@ -22,9 +23,11 @@ pub struct LoggingConfig {
     pub rust_log_style: String,
 }
 
-#[derive(Deserialize)]
-pub struct S3Config {
-    pub region: String,
+#[derive(Clone, Default, Deserialize)]
+pub struct AwsConfig {
+    pub account_id: Option<String>,
+    pub region: Option<String>,
+    pub default_bucket: Option<String>,
 }
 
 pub fn load() -> Result<AppConfig> {

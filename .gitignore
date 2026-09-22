@@ -2,3 +2,4 @@
 /ocr
 .env.toml
 .env.*
+.astro

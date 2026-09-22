@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
 #[derive(Serialize, Deserialize)]
 pub struct Document {
     id: Uuid,
@@ -29,6 +32,6 @@ impl Document {
     }
 
     pub fn url(&self) -> &str {
-        &self.url
+        &self.s3_url
     }
 }

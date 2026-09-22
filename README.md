@@ -2,12 +2,15 @@
 
 ## Startup
 
-Copy `.example.env.toml` to `.env.toml`, set `mongodb_uri`,
-`mongodb_database`, and the S3 `region`, then run `cargo run`. The server listens at
-`127.0.0.1:3000`. Both database settings are required; no credentials or fallback
-values are supplied. Put authentication options in your connection URI if your
-MongoDB deployment requires them. `rust_log` defaults to `info`, and
-`rust_log_style` defaults to `auto` when omitted.
+Copy `.example.env.toml` to `.env.toml`, set `mongodb_uri` and
+`mongodb_database`, then run `cargo run`. The AWS `account_id`, `region`, and
+`default_bucket` prefix settings are optional. When omitted, account ID and region
+come from the AWS SDK credential and region chains, while the bucket prefix
+defaults to `default`. Startup fails if the SDK does not resolve an account ID or
+region. The server listens at `127.0.0.1:3000`. Both database settings are
+required; no credentials or fallback values are supplied. Put authentication
+options in your connection URI if your MongoDB deployment requires them.
+`rust_log` defaults to `info`, and `rust_log_style` defaults to `auto` when omitted.
 
 The shared MongoDB client is initialized at startup without a ping or application
 query. Initialization does not verify connectivity. Label operations use the
@@ -36,12 +39,30 @@ Mise also provides `dev`, `frontend:install`, `frontend:dev`, and
 
 Open `http://127.0.0.1:3000/swagger` for Swagger UI. It loads `/openapi.json`, the
 OpenAPI 3.1 specification generated from the same Utoipa-annotated handlers used
-by the application. The document endpoints remain placeholders.
+by the application.
 
 Each service keeps business logic in `mod.rs`, route registration in `api/mod.rs`,
 HTTP handling in `api/router.rs`, API inputs in `api/request.rs`, and API outputs in
 `api/response.rs`. Shared HTTP error conversion lives in `src/api/response.rs`.
 Router composition and OpenAPI setup stay in `src/api/mod.rs`. See [AGENTS.md](AGENTS.md).
+
+## Documents
+
+Upload one document with multipart form data. `bucket_name` is an optional bucket
+prefix, and `metadata` is an optional JSON object whose values must be strings.
+The service adds the effective account-regional bucket name to metadata under
+`bucket_name`, overriding a caller-supplied value with that key.
+
+```sh
+curl -s http://127.0.0.1:3000/documents \
+  -F 'file=@report.pdf' \
+  -F 'bucket_name=invoices' \
+  -F 'metadata={"source":"frontend"}'
+```
+
+The response is `201 Created` with the effective `bucket_name`, a unique
+`object_key`, and a nullable S3 `e_tag`. Missing buckets are created in the AWS
+account-regional namespace. The complete request is limited to 25 MiB.
 
 ## Labels
 
