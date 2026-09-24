@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardTopbar } from '@/components/dashboard/DashboardTopbar';
 import { boards, type BoardId } from '@/lib/boards';
+import { DEFAULT_WIDTH, MAXIMUM_WIDTH, MINIMUM_WIDTH, SIDEBAR_COOKIE, WIDTH_COOKIE, SidebarState } from '@/state/zustand';
 import '@/styles/global.css';
 import '@/styles/dashboard.css';
 
@@ -16,6 +17,16 @@ const currentBoard = boards.find((board) => board.id === activeBoard);
 if (!currentBoard) {
   throw new Error(`Unknown dashboard board: ${activeBoard}`);
 }
+
+const savedSidebar = Astro.cookies.get(SIDEBAR_COOKIE)?.value;
+const savedWidth = Number(Astro.cookies.get(WIDTH_COOKIE)?.value);
+const initialState = {
+  sidebar: savedSidebar === SidebarState.CLOSED ? SidebarState.CLOSED : SidebarState.OPENED,
+  width: Number.isFinite(savedWidth) && savedWidth >= MINIMUM_WIDTH && savedWidth <= MAXIMUM_WIDTH
+    ? savedWidth
+    : DEFAULT_WIDTH,
+};
+Astro.response.headers.set('Cache-Control', 'private, no-store');
 
 ---
 
@@ -40,9 +51,8 @@ if (!currentBoard) {
       })();
     </script>
     <script>
-      import { Theme, useThemeStore, useWebpageStore } from '@/state/zustand';
+      import { Theme, useThemeStore } from '@/state/zustand';
 
-      useWebpageStore.getState().initState();
       useThemeStore.getState().initTheme();
 
       function applyTheme(root = document.documentElement) {
@@ -66,6 +76,7 @@ if (!currentBoard) {
     <div class="dashboard-layout">
       <DashboardSidebar
         activeBoard={activeBoard}
+        initialState={initialState}
         client:load
         transition:persist="dashboard-sidebar"
       />

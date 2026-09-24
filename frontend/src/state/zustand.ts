@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createStore } from 'zustand/vanilla';
 
 export enum Theme {
   LIGHT = 'light',
@@ -59,43 +60,40 @@ export enum SidebarState {
 export const DEFAULT_WIDTH = 15;
 export const MINIMUM_WIDTH = 12;
 export const MAXIMUM_WIDTH = 32;
+export const SIDEBAR_COOKIE = 'sidebar-state';
+export const WIDTH_COOKIE = 'maki-sidebar-width';
 
-export type WebpageState = {
+function saveSidebarPreference(key: string, value: string) {
+  try {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${key}=${encodeURIComponent(value)}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  } catch {
+    // The sidebar still works for this page when cookies are unavailable.
+  }
+}
+
+export type SidebarPreferences = {
   sidebar: SidebarState;
   width: number;
-  sidebarKey: string;
-  widthKey: string;
-  initState: () => void;
+};
+
+export type WebpageState = SidebarPreferences & {
   toggleSidebar: () => void;
   setWidth: (width: number) => void;
 };
 
-export const useWebpageStore = create<WebpageState>((set) => ({
-  sidebar: SidebarState.OPENED,
-  width: DEFAULT_WIDTH,
-  sidebarKey: 'sidebar-state',
-  widthKey: 'maki-sidebar-width',
-  initState: () => set((state) => {
-    const storedSidebar = readPreference(state.sidebarKey);
-    const sidebar = storedSidebar === SidebarState.OPENED || storedSidebar === SidebarState.CLOSED
-      ? storedSidebar
-      : SidebarState.OPENED;
-    const storedWidth = Number(readPreference(state.widthKey));
-    const width = Number.isFinite(storedWidth) && storedWidth >= MINIMUM_WIDTH && storedWidth <= MAXIMUM_WIDTH
-      ? storedWidth
-      : DEFAULT_WIDTH;
-    return { sidebar, width };
-  }),
+export const createWebpageStore = (initialState: SidebarPreferences) => createStore<WebpageState>((set) => ({
+  ...initialState,
   toggleSidebar: () => set((state) => {
     const sidebar = state.sidebar === SidebarState.OPENED ? SidebarState.CLOSED : SidebarState.OPENED;
-    savePreference(state.sidebarKey, sidebar);
+    saveSidebarPreference(SIDEBAR_COOKIE, sidebar);
     return { sidebar };
   }),
-  setWidth: (next) => set((state) => {
+  setWidth: (next) => set(() => {
     const width = Number.isFinite(next)
       ? Math.min(MAXIMUM_WIDTH, Math.max(MINIMUM_WIDTH, next))
       : DEFAULT_WIDTH;
-    savePreference(state.widthKey, String(width));
+    saveSidebarPreference(WIDTH_COOKIE, String(width));
     return { width };
   }),
 }));

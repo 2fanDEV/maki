@@ -5,6 +5,7 @@ import {
   type PointerEvent,
 } from 'react';
 import { BarChart3, Boxes, FileText } from 'lucide-react';
+import { useStore } from 'zustand';
 import {
   Sidebar,
   SidebarContent,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { boards, type BoardId } from '@/lib/boards';
-import { MAXIMUM_WIDTH, MINIMUM_WIDTH, SidebarState, useWebpageStore } from '@/state/zustand';
+import { createWebpageStore, MAXIMUM_WIDTH, MINIMUM_WIDTH, SidebarState, type SidebarPreferences } from '@/state/zustand';
 
 type Props = {
   activeBoard: BoardId;
@@ -32,11 +33,12 @@ const boardIcons = {
   'bar-chart': BarChart3,
 };
 
-export function DashboardSidebar({ activeBoard }: Props) {
-  const sidebar = useWebpageStore(state => state.sidebar);
-  const toggle = useWebpageStore(state => state.toggleSidebar);
-  const width = useWebpageStore(state => state.width);
-  const setWidth = useWebpageStore(state => state.setWidth);
+export function DashboardSidebar({ activeBoard, initialState }: Props & { initialState: SidebarPreferences }) {
+  const [store] = useState(() => createWebpageStore(initialState));
+  const sidebar = useStore(store, state => state.sidebar);
+  const toggle = useStore(store, state => state.toggleSidebar);
+  const width = useStore(store, state => state.width);
+  const setWidth = useStore(store, state => state.setWidth);
 
   return (
     <TooltipProvider>

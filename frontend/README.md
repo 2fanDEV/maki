@@ -8,7 +8,7 @@ included yet.
 The shadcn sidebar starts at 15vw on desktop. Drag its rail to resize, or focus
 the separator and use the left/right arrow keys (Home/End select the
 minimum/maximum). Its trigger collapses it to icons; expanding restores its
-previous width. The desktop width is maintained for the current session.
+previous width. Sidebar state and desktop width are saved in cookies for one year.
 Cmd/Ctrl+B also toggles the sidebar. The dashboard uses a desktop-only layout.
 
 Dark mode is the default. The switch between the sun/moon icons at the top right
@@ -90,4 +90,14 @@ npm run build
 npm run preview
 ```
 
-The build writes static output to `dist`. No deployment is configured.
+Dashboard pages render on request with the Node adapter, reading sidebar state
+and width from cookies so the initial HTML already has the saved layout. Other
+routes remain static. React starts with the same sidebar values as the server.
+Previous sidebar localStorage entries are not migrated.
+
+The build writes client assets to `dist/client` and the standalone server to
+`dist/server`. Run the production server with:
+
+```sh
+HOST=0.0.0.0 PORT=4321 node dist/server/entry.mjs
+```
