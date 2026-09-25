@@ -11,6 +11,38 @@
   background: var(--background);
 }
 
+[data-slot="sidebar-separator-wrapper"],
+[data-slot="sidebar-separator-wrapper"] [data-slot="sidebar-separator"] {
+  margin-block: 0.2rem 0.2rem;
+  border-radius: 3rem;
+}
+
+[data-slot="sidebar-separator-label"] {
+  color: color-mix(in oklab, var(--sidebar-foreground) 50%, transparent);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+[data-collapsible="icon"] [data-sidebar-separator-item] {
+  padding-inline: 0.15rem;
+}
+
+[data-collapsible="icon"] [data-slot="sidebar-separator"][data-orientation="horizontal"] {
+  height: 2px;
+}
+
+#board-navigation [data-sidebar="menu-button"] {
+  width: 100%;
+  max-width: 100%;
+}
+
+@layer utilities {
+  [data-collapsible="icon"] #board-navigation [data-sidebar="menu-button"] {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+}
+
 /* Extend shadcn's rail with drag and keyboard resizing. */
 .sidebar-resize {
   display: block;

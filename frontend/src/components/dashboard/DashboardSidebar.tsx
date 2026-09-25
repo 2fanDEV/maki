@@ -16,11 +16,12 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
+  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { boards, type BoardId } from '@/lib/boards';
+import { sidebarElements, type BoardId } from '@/lib/boards';
 import { createWebpageStore, MAXIMUM_WIDTH, MINIMUM_WIDTH, SidebarState, type SidebarPreferences } from '@/state/zustand';
 
 type Props = {
@@ -46,7 +47,7 @@ export function DashboardSidebar({ activeBoard, initialState }: Props & { initia
         className="w-auto shrink-0"
         open={sidebar === SidebarState.OPENED}
         onOpenChange={() => toggle()}
-        style={{ '--sidebar-width': `${width}vw`, '--sidebar-width-icon': '3vw' } as CSSProperties}
+        style={{ '--sidebar-width': `${width}vw`, '--sidebar-width-icon': 'max(3vw, 2rem)' } as CSSProperties}
       >
         <DashboardSidebarContent
           activeBoard={activeBoard}
@@ -109,25 +110,33 @@ function DashboardSidebarContent({
         <SidebarGroup className="group-data-[collapsible=icon]:px-0">
           <nav id="board-navigation" aria-label="Boards">
             <SidebarMenu>
-              {boards.map((board) => {
-                const Icon = boardIcons[board.icon];
-                const active = activeBoard === board.id;
+              {sidebarElements.map((element) => {
+                if (element.type === 'separator') {
+                  return (
+                    <SidebarMenuItem key={element.id} role="presentation" data-sidebar-separator-item>
+                      <SidebarSeparator label={'label' in element ? element.label : undefined} />
+                    </SidebarMenuItem>
+                  );
+                }
+
+                const Icon = boardIcons[element.icon];
+                const active = activeBoard === element.id;
 
                 return (
                   <SidebarMenuItem
-                    key={board.id}
+                    key={element.id}
                     className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center"
                   >
                     <SidebarMenuButton
-                      render={<a href={board.href} />}
-                      className="group-data-[collapsible=icon]:w-full! group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center [&_svg]:max-w-full"
+                      render={<a href={element.href} />}
+                      className="group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center [&_svg]:max-w-full"
                       isActive={active}
-                      aria-label={board.name}
+                      aria-label={element.name}
                       aria-current={active ? 'page' : undefined}
-                      tooltip={board.name}
+                      tooltip={element.name}
                     >
                       <Icon aria-hidden="true" />
-                      <span className="group-data-[collapsible=icon]:hidden">{board.name}</span>
+                      <span className="group-data-[collapsible=icon]:hidden">{element.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
