@@ -1,3 +1,6 @@
+/* Keep Tailwind's layer order stable when Astro swaps stylesheets. */
+@layer properties, theme, base, components, utilities;
+
 .dashboard-layout {
   display: flex;
   min-height: 100svh;
@@ -93,6 +96,10 @@
   font-size: 1.375rem;
   font-weight: 550;
   letter-spacing: -0.035em;
+}
+
+.board {
+    height: 100%;
 }
 
 .board-canvas {
