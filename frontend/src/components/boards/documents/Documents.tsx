@@ -5,16 +5,15 @@ import { UploadDocumentDialog } from "./UploadDialog";
 
 export function Documents() {
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  function handleFileDrop(file: File) {
-    setSelectedFile(file);
+  function handleFileDrop(files: File[]) {
     setUploadOpen(true);
+    setSelectedFiles(files);
   }
 
   function handleUploadOpenChange(open: boolean) {
     setUploadOpen(open);
-    if (!open) setSelectedFile(null);
   }
 
   return (
@@ -29,14 +28,13 @@ export function Documents() {
           }
           triggerLabel="Document actions"
         />
-
       </div>
-      <DocumentDropzone disabled={uploadOpen} onFileDrop={handleFileDrop} />
+      <DocumentDropzone onFileDrop={handleFileDrop} dialog={false} />
       <UploadDocumentDialog
         open={uploadOpen}
         onOpenChange={handleUploadOpenChange}
-        selectedFile={selectedFile}
-        onFileChange={setSelectedFile}
+        selectedFiles={selectedFiles}
+        onFileSelect={setSelectedFiles}
       />
     </div>
   );
