@@ -17,6 +17,8 @@ use crate::{
 #[utoipa::path(
     post,
     path = "/trainers",
+    tag = "classification",
+    operation_id = "createTrainer",
     request_body = CreateTrainerRequest,
     responses(
         (status = 201, body = TrainerMetadata),
@@ -41,6 +43,8 @@ pub(super) async fn create_trainer(
 #[utoipa::path(
     get,
     path = "/trainers/{trainer_id}",
+    tag = "classification",
+    operation_id = "getTrainer",
     params(("trainer_id" = uuid::Uuid, Path)),
     responses(
         (status = 200, body = TrainerMetadata),
@@ -59,6 +63,8 @@ pub(super) async fn trainer_metadata(
 #[utoipa::path(
     post,
     path = "/trainers/{trainer_id}/train",
+    tag = "classification",
+    operation_id = "trainModel",
     params(("trainer_id" = uuid::Uuid, Path)),
     responses(
         (status = 201, body = ModelMetadata),
@@ -83,6 +89,8 @@ pub(super) async fn train_model(
 #[utoipa::path(
     get,
     path = "/models/{model_id}",
+    tag = "classification",
+    operation_id = "getModel",
     params(("model_id" = uuid::Uuid, Path)),
     responses(
         (status = 200, body = ModelMetadata),

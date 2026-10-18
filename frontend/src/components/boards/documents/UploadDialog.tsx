@@ -10,6 +10,8 @@ import { DocumentDropzone } from "./DocumentDropzone";
 import { MouseEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import axios from 'axios';
+import { Documents } from "./Documents";
+import { getDocuments } from "@/lib/api";
 
 
 export function UploadDocumentDialog({
@@ -24,6 +26,7 @@ export function UploadDocumentDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [folderName, setFolderName] = useState("");
+  const documentsClient = getDocuments();
   const conditionalFolderInput = (
     <Input
       type="text"
@@ -34,7 +37,6 @@ export function UploadDocumentDialog({
   );
 
   function handleFileUpload(event: MouseEvent<HTMLButtonElement>): void {
-
     onOpenChange(false);
     console.log(open);
   }

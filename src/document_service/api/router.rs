@@ -13,8 +13,10 @@ use crate::{
 
 /// Upload a document to an account-regional S3 bucket.
 #[utoipa::path(
-    tag = "document",
+    post,
     path = "/",
+    tag = "documents",
+    operation_id = "uploadDocument",
     request_body(content = UploadDocumentRequest, content_type = "multipart/form-data"),
     responses(
         (status = 201, body = UploadDocumentResponse),
@@ -22,8 +24,8 @@ use crate::{
         (status = 413, body = crate::api::response::ErrorResponse),
         (status = 422, body = crate::api::response::ErrorResponse),
         (status = 500, body = crate::api::response::ErrorResponse),
-
-)
+    )
+)]
 pub(super) async fn upload_document(
     State(document_service): State<DocumentService>,
     Extension(_label_service): Extension<LabelService>,

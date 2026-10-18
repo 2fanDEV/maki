@@ -20,6 +20,8 @@ fn object_id(id: &str) -> Result<ObjectId, ApiError> {
 #[utoipa::path(
     post,
     path = "/labels",
+    tag = "labels",
+    operation_id = "createLabel",
     request_body = LabelInput,
     responses(
         (status = 201),
@@ -41,6 +43,8 @@ pub(super) async fn create_label(
 #[utoipa::path(
     delete,
     path = "/labels/{id}",
+    tag = "labels",
+    operation_id = "deleteLabel",
     params(("id" = String, Path)),
     responses(
         (status = 200, body = LabelResponse),

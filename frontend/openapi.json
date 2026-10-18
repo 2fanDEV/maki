@@ -7,8 +7,11 @@
   "paths": {
     "/documents": {
       "post": {
+        "tags": [
+          "documents"
+        ],
         "summary": "Upload a document to an account-regional S3 bucket.",
-        "operationId": "upload_document",
+        "operationId": "uploadDocument",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -75,8 +78,11 @@
     },
     "/labels": {
       "post": {
+        "tags": [
+          "labels"
+        ],
         "summary": "Create a label with a MongoDB-generated ID. Duplicate names are allowed.",
-        "operationId": "create_label",
+        "operationId": "createLabel",
         "requestBody": {
           "content": {
             "application/json": {
@@ -126,8 +132,11 @@
     },
     "/labels/{id}": {
       "delete": {
+        "tags": [
+          "labels"
+        ],
         "summary": "Delete a label. Document/trainer reference checks are not implemented.",
-        "operationId": "delete_label",
+        "operationId": "deleteLabel",
         "parameters": [
           {
             "name": "id",
@@ -184,8 +193,11 @@
     },
     "/models/{model_id}": {
       "get": {
+        "tags": [
+          "classification"
+        ],
         "summary": "Read completed model metadata and evaluation. Resolve current label names through /labels.",
-        "operationId": "model_metadata",
+        "operationId": "getModel",
         "parameters": [
           {
             "name": "model_id",
@@ -233,8 +245,11 @@
     },
     "/trainers": {
       "post": {
+        "tags": [
+          "classification"
+        ],
         "summary": "Validate label IDs and store an untrained trainer in memory. Does not fit a model.",
-        "operationId": "create_trainer",
+        "operationId": "createTrainer",
         "requestBody": {
           "content": {
             "application/json": {
@@ -291,8 +306,11 @@
     },
     "/trainers/{trainer_id}": {
       "get": {
+        "tags": [
+          "classification"
+        ],
         "summary": "Read trainer configuration, lifecycle state, error, or resulting model ID.",
-        "operationId": "trainer_metadata",
+        "operationId": "getTrainer",
         "parameters": [
           {
             "name": "trainer_id",
@@ -340,8 +358,11 @@
     },
     "/trainers/{trainer_id}/train": {
       "post": {
+        "tags": [
+          "classification"
+        ],
         "summary": "Train and evaluate once, awaiting completion. Returns a new model ID. Disconnecting does not cancel training.",
-        "operationId": "train_model",
+        "operationId": "trainModel",
         "parameters": [
           {
             "name": "trainer_id",
@@ -882,8 +903,8 @@
         "type": "object",
         "required": [
           "bucket_name",
-          "e_tag",
-          "object_key"
+          "object_key",
+          "e_tag"
         ],
         "properties": {
           "bucket_name": {

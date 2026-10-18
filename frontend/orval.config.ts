@@ -7,7 +7,7 @@ export default defineConfig({
       mode: "tags-split",
       httpClient: "axios",
       target: "src/lib/api/clients.ts",
-      baseUrl: "http://localhost:8123"
+      baseUrl: "http://localhost:3000"
     },
     input: {
       "target": "./openapi.json"
