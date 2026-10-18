@@ -7,8 +7,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DocumentDropzone } from "./DocumentDropzone";
-import { MouseEvent, useRef, useState } from "react";
+import { MouseEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
+import axios from 'axios';
+
 
 export function UploadDocumentDialog({
   open,
@@ -32,7 +34,6 @@ export function UploadDocumentDialog({
   );
 
   function handleFileUpload(event: MouseEvent<HTMLButtonElement>): void {
-
 
     onOpenChange(false);
     console.log(open);
