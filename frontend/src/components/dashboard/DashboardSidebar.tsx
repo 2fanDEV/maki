@@ -1,11 +1,11 @@
 import {
-  useEffect,
   useState,
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
 } from 'react';
 import { BarChart3, Boxes, FileText } from 'lucide-react';
+import { useStore } from 'zustand';
 import {
   Sidebar,
   SidebarContent,
@@ -16,11 +16,14 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
+  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { boards, type BoardId } from '@/lib/boards';
+import { sidebarElements, type BoardId } from '@/lib/boards';
+import { navigate } from '@/lib/navigation';
+import { createWebpageStore, MAXIMUM_WIDTH, MINIMUM_WIDTH, SidebarState, type SidebarPreferences } from '@/state/zustand';
 
 type Props = {
   activeBoard: BoardId;
@@ -32,61 +35,25 @@ const boardIcons = {
   'bar-chart': BarChart3,
 };
 
-const DEFAULT_WIDTH = 15;
-const MINIMUM_WIDTH = 12;
-const MAXIMUM_WIDTH = 32;
-const WIDTH_KEY = 'maki-sidebar-width';
-
-function storedWidth() {
-  try {
-    const width = Number(sessionStorage.getItem(WIDTH_KEY));
-    if (width >= MINIMUM_WIDTH && width <= MAXIMUM_WIDTH) return width;
-  } catch {
-    // The default remains available when session storage is unavailable.
-  }
-
-  return DEFAULT_WIDTH;
-}
-
-function storedSidebarOpen() {
-  const entry = document.cookie
-    .split('; ')
-    .find((part) => part.startsWith('sidebar_state='));
-  return entry?.split('=')[1] !== 'false';
-}
-
-export function DashboardSidebar({ activeBoard }: Props) {
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [open, setOpen] = useState(true);
-
-  useEffect(() => {
-    setWidth(storedWidth());
-    setOpen(storedSidebarOpen());
-  }, []);
-
-  function changeWidth(next: number) {
-    const width = Math.min(MAXIMUM_WIDTH, Math.max(MINIMUM_WIDTH, next));
-    setWidth(width);
-
-    try {
-      sessionStorage.setItem(WIDTH_KEY, String(width));
-    } catch {
-      // Resizing still works for this page when storage is unavailable.
-    }
-  }
+export function DashboardSidebar({ activeBoard, initialState }: Props & { initialState: SidebarPreferences }) {
+  const [store] = useState(() => createWebpageStore(initialState));
+  const sidebar = useStore(store, state => state.sidebar);
+  const toggle = useStore(store, state => state.toggleSidebar);
+  const width = useStore(store, state => state.width);
+  const setWidth = useStore(store, state => state.setWidth);
 
   return (
     <TooltipProvider>
       <SidebarProvider
         className="w-auto shrink-0"
-        open={open}
-        onOpenChange={setOpen}
-        style={{ '--sidebar-width': `${width}vw`, '--sidebar-width-icon': '3vw' } as CSSProperties}
+        open={sidebar === SidebarState.OPENED}
+        onOpenChange={() => toggle()}
+        style={{ '--sidebar-width': `${width}vw`, '--sidebar-width-icon': 'max(3vw, 2rem)' } as CSSProperties}
       >
         <DashboardSidebarContent
           activeBoard={activeBoard}
           width={width}
-          onWidthChange={changeWidth}
+          onWidthChange={setWidth}
         />
       </SidebarProvider>
     </TooltipProvider>
@@ -144,25 +111,37 @@ function DashboardSidebarContent({
         <SidebarGroup className="group-data-[collapsible=icon]:px-0">
           <nav id="board-navigation" aria-label="Boards">
             <SidebarMenu>
-              {boards.map((board) => {
-                const Icon = boardIcons[board.icon];
-                const active = activeBoard === board.id;
+              {sidebarElements.map((element) => {
+                if (element.type === 'separator') {
+                  return (
+                    <SidebarMenuItem key={element.id} role="presentation" data-sidebar-separator-item>
+                      <SidebarSeparator label={'label' in element ? element.label : undefined} />
+                    </SidebarMenuItem>
+                  );
+                }
+
+                const Icon = boardIcons[element.icon];
+                const active = activeBoard === element.id;
 
                 return (
                   <SidebarMenuItem
-                    key={board.id}
+                    key={element.id}
                     className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center"
                   >
                     <SidebarMenuButton
-                      render={<a href={board.href} />}
-                      className="group-data-[collapsible=icon]:w-full! group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center [&_svg]:max-w-full"
+                      render={<a href={element.href} onClick={(event) => {
+                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                        event.preventDefault();
+                        navigate(element.href);
+                      }} />}
+                      className="group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center [&_svg]:max-w-full"
                       isActive={active}
-                      aria-label={board.name}
+                      aria-label={element.name}
                       aria-current={active ? 'page' : undefined}
-                      tooltip={board.name}
+                      tooltip={element.name}
                     >
                       <Icon aria-hidden="true" />
-                      <span className="group-data-[collapsible=icon]:hidden">{board.name}</span>
+                      <span className="group-data-[collapsible=icon]:hidden">{element.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

@@ -3,3 +3,4 @@
 .env.toml
 .env.*
 .astro
+.pnpm-store/

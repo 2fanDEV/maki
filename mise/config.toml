@@ -1,6 +1,7 @@
 [tools]
 rust = "1.96.0"
 node = "26.2.0"
+pnpm = "10.33.0"
 
 [tasks.dev]
 description = "Start the Rust API server"
@@ -25,17 +26,17 @@ run = "cargo fmt"
 [tasks."frontend:install"]
 description = "Install frontend dependencies from the lockfile"
 dir = "{{ config_root }}/frontend"
-run = "npm ci"
+run = "pnpm install --frozen-lockfile"
 
 [tasks."frontend:dev"]
-description = "Start the Astro development server"
+description = "Start the React development server"
 dir = "{{ config_root }}/frontend"
-run = "npm run dev"
+run = "pnpm dev"
 
 [tasks."frontend:build"]
-description = "Build the Astro frontend"
+description = "Build the React frontend"
 dir = "{{ config_root }}/frontend"
-run = "npm run build"
+run = "pnpm build"
 
 [tasks."db:up"]
 description = "Start MongoDB and wait for it to be healthy"
