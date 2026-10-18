@@ -4,15 +4,17 @@ import { cn } from "@/lib/utils";
 type DocumentDropzoneProps = {
   className?: string;
   dialog: boolean;
+  noClick: boolean;
+  disabled?: boolean;
   onFileDrop: (files: File[]) => void;
 };
 
-export function DocumentDropzone({ className, dialog, onFileDrop }: DocumentDropzoneProps) {
+export function DocumentDropzone({ className, noClick, dialog, disabled = false, onFileDrop }: DocumentDropzoneProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    noClick: true,
+    noClick,
     noKeyboard: true,
     multiple: true,
-    disabled: false,
+    disabled,
     onDropAccepted: onFileDrop,
   });
 

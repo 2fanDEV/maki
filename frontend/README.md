@@ -1,103 +1,44 @@
 # Maki frontend
 
-The Astro frontend renders a dashboard with Documents, Models, and Evaluations
-boards. Each board has a direct `/dashboard/...` route and is composed into the
-Astro-owned dashboard shell. No API calls or board-specific data features are
-included yet.
-
-The shadcn sidebar starts at 15vw on desktop. Drag its rail to resize, or focus
-the separator and use the left/right arrow keys (Home/End select the
-minimum/maximum). Its trigger collapses it to icons; expanding restores its
-previous width. Sidebar state and desktop width are saved in cookies for one year.
-Cmd/Ctrl+B also toggles the sidebar. The dashboard uses a desktop-only layout.
-
-Dark mode is the default. The switch between the sun/moon icons at the top right
-controls dark mode and saves the choice locally for the next visit.
+This React frontend has Documents, Models, and Evaluations boards. The board URLs are `/dashboard/documents`, `/dashboard/models`, and `/dashboard/evaluations`. The root URL and `/dashboard` open Documents. No board API calls are included yet.
 
 ## Install and run
 
-Use the Node version configured by the repository’s Mise setup (Node 22.12 or
-newer is required). Run these commands from the `frontend` directory:
+Use the Node and pnpm versions in `mise/config.toml`. From this directory:
 
 ```sh
-npm ci
-npm run dev -- --background
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-Open http://localhost:4321. Manage the background server with
-`npm run astro -- dev status`, `npm run astro -- dev logs`, and
-`npm run astro -- dev stop`.
+Open http://localhost:4321.
 
 ## Generate the API specification and types
 
-Start the Rust server from the repository root with `cargo run`, configured by
-`.env.toml`. See the root README for database setup. OpenAPI generation uses the
-server’s route registrations and does not issue application database queries.
-
-With the server running, execute from `frontend`:
+Start the Rust server from the repository root with `cargo run`, configured by `.env.toml`. With the server running, execute:
 
 ```sh
-npm run api:generate
+pnpm api:generate
 ```
 
-The command downloads `http://127.0.0.1:3000/openapi.json` and generates:
+The command downloads `http://127.0.0.1:3000/openapi.json` and generates `openapi.json` and `src/api/schema.d.ts`. To select another endpoint, set `OPENAPI_URL` before the command.
 
-- `openapi.json`: the server’s OpenAPI specification.
-- `src/api/schema.d.ts`: TypeScript types generated with `openapi-typescript`.
-
-To select another endpoint:
-
-```sh
-OPENAPI_URL=http://127.0.0.1:3000/openapi.json npm run api:generate
-```
-
-Both generated files belong in version control. Refresh them after API changes;
-do not edit them by hand. Fetching has a 10-second timeout. Network, HTTP, JSON,
-and type-generation failures exit unsuccessfully without replacing existing
-outputs.
-
-Generation is explicit. Development, checking, and builds use the saved files
-and do not require the backend. No runtime API client is included.
+Both generated files belong in version control. Refresh them after API changes. Generation is explicit; checks and builds use the saved files.
 
 ## UI foundation
 
-React is enabled through `@astrojs/react`. Tailwind CSS v4 and shadcn/ui use the
-shared stylesheet at `src/styles/global.css`, imported by the dashboard layout.
-The shadcn configuration is in `components.json`: Base UI, Nova style, neutral
-colors, Lucide icons, and the locally bundled Geist font.
+Vite builds the React app. Tailwind CSS v4 and shadcn/ui use `src/styles/global.css`. The `@/` import alias resolves to `src/`. The dashboard shell and route selection are in `src/App.tsx`. Browser navigation is in `src/lib/navigation.ts`; the Vite server and preview serve `index.html` for direct board URLs. A production host must also serve `index.html` for these URLs.
 
-The `@/` import alias resolves to `src/`. Astro owns the board routes and composes
-the dashboard layout. The shadcn sidebar and top bar are separate React islands
-with `transition:persist`: navigation updates the active sidebar link without
-remounting either island or resetting collapse, width, or theme state. The board
-slot is outside both islands, so only the selected board is replaced. Navigation
-uses Astro's client router with ordinary links and no page-transition animation;
-board URLs remain directly addressable and work with browser history. The sidebar
-and top bar hydrate on page load.
-Add further components when needed using `npx shadcn add COMPONENT` from this
-directory, replacing `COMPONENT` with the component name.
+The sidebar starts at 15vw on desktop. Its size and collapsed state are saved in cookies. The theme is saved in local storage. Navigation keeps the sidebar and top bar mounted while the board changes.
 
-Interactive React components used in Astro need a hydration directive. The
-sidebar and top bar use `client:load`, and Documents uses its own `client:load`
-island for the action dropdown. Keep board event handlers
-inside their board island rather than passing functions through Astro.
+Add UI components with `pnpm exec shadcn add COMPONENT` from this directory.
 
 ## Check and build
 
 ```sh
-npm run check
-npm run build
-npm run preview
+pnpm check
+pnpm build
+pnpm preview
 ```
 
-Dashboard pages render on request with the Node adapter, reading sidebar state
-and width from cookies so the initial HTML already has the saved layout. Other
-routes remain static. React starts with the same sidebar values as the server.
-Previous sidebar localStorage entries are not migrated.
-
-The build writes client assets to `dist/client` and the standalone server to
-`dist/server`. Run the production server with:
-
-```sh
-HOST=0.0.0.0 PORT=4321 node dist/server/entry.mjs
-```
+The production files are in `build/`. Serve that directory with a static host that falls back to `index.html` for board URLs.

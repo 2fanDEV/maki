@@ -29,7 +29,7 @@ export function Documents() {
           triggerLabel="Document actions"
         />
       </div>
-      <DocumentDropzone onFileDrop={handleFileDrop} dialog={false} />
+      <DocumentDropzone noClick={true} onFileDrop={handleFileDrop} dialog={false} />
       <UploadDocumentDialog
         open={uploadOpen}
         onOpenChange={handleUploadOpenChange}

@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DocumentDropzone } from "./DocumentDropzone";
-import { useState } from "react";
+import { MouseEvent, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export function UploadDocumentDialog({
   open,
@@ -30,6 +31,13 @@ export function UploadDocumentDialog({
     />
   );
 
+  function handleFileUpload(event: MouseEvent<HTMLButtonElement>): void {
+
+
+    onOpenChange(false);
+    console.log(open);
+  }
+
   return (
     <div>
       <Dialog defaultOpen={false} open={open} onOpenChange={onOpenChange}>
@@ -42,20 +50,11 @@ export function UploadDocumentDialog({
             </DialogDescription>
             {(selectedFiles.length ?? 0) > 0 && (conditionalFolderInput)}
             <div className="h-28">
-              <DocumentDropzone onFileDrop={onFileSelect} dialog={true} />
+              <DocumentDropzone noClick={false}  onFileDrop={onFileSelect} dialog={true} />
             </div>
-            <Input
-              multiple
-              type="file"
-              onChange={(event) => {
-                const file = event.target.files;
-                if (file) {
-                  const fileList = Array.from(file);
-                  onFileSelect(fileList);
-                  console.log(fileList);
-                }
-              }}
-            />
+            <div className="flex justify-end">
+              <Button onClick={handleFileUpload}  className="w-20">Upload</Button>
+            </div>
           </DialogContent>
         </form>
       </Dialog>

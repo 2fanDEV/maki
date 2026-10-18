@@ -1,4 +1,3 @@
-/* Keep Tailwind's layer order stable when Astro swaps stylesheets. */
 @layer properties, theme, base, components, utilities;
 
 .dashboard-layout {

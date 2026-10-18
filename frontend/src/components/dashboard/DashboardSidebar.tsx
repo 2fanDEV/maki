@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { sidebarElements, type BoardId } from '@/lib/boards';
+import { navigate } from '@/lib/navigation';
 import { createWebpageStore, MAXIMUM_WIDTH, MINIMUM_WIDTH, SidebarState, type SidebarPreferences } from '@/state/zustand';
 
 type Props = {
@@ -128,7 +129,11 @@ function DashboardSidebarContent({
                     className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center"
                   >
                     <SidebarMenuButton
-                      render={<a href={element.href} />}
+                      render={<a href={element.href} onClick={(event) => {
+                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                        event.preventDefault();
+                        navigate(element.href);
+                      }} />}
                       className="group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center [&_svg]:max-w-full"
                       isActive={active}
                       aria-label={element.name}
