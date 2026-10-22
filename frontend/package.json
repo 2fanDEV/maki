@@ -2,7 +2,7 @@
   "name": "frontend",
   "type": "module",
   "version": "0.0.1",
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@12.14.0",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -10,13 +10,13 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "api:generate": "node scripts/generate-api.mjs",
     "check": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@fontsource-variable/geist": "^5.3.0",
     "@tailwindcss/vite": "^4.3.3",
+    "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.6",
     "lucide-react": "^1.43.0",
@@ -29,10 +29,11 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.2.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "openapi-typescript": "^7.13.0",
+    "orval": "^8.43.0",
     "typescript": "^5.9.3",
     "vite": "^8.2.2"
   }

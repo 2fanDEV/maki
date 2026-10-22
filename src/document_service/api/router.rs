@@ -15,6 +15,8 @@ use crate::{
 #[utoipa::path(
     post,
     path = "/",
+    tag = "documents",
+    operation_id = "uploadDocument",
     request_body(content = UploadDocumentRequest, content_type = "multipart/form-data"),
     responses(
         (status = 201, body = UploadDocumentResponse),

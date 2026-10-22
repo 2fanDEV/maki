@@ -1,0 +1,8 @@
+[tools]
+pnpm = "12.14.0"
+orval = "8.43.0"
+
+[tasks."openapi:generate"]
+description = "Generate the axios/orval client"
+run = "orval --config ./orval.config.ts"
+
