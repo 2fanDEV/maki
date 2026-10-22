@@ -1,18 +1,23 @@
 use std::collections::HashMap;
 
+use axum::body::Bytes;
+use axum_typed_multipart::{FieldData, TryFromField, TryFromMultipart};
 use serde::Deserialize;
 use uuid::Uuid;
 
-#[derive(utoipa::ToSchema)]
+#[derive(TryFromField, utoipa::ToSchema)]
+pub enum UploadMethod {
+    CREATE_BUCKET,
+    APPEND,
+}
+
+#[derive(TryFromMultipart, utoipa::ToSchema)]
 pub struct UploadDocumentRequest {
     #[schema(value_type = String, format = Binary)]
-    pub(super) file: Vec<u8>,
+    pub(super) file: FieldData<Bytes>,
     pub(super) bucket_name: Option<String>,
-    pub(super) metadata: Option<HashMap<String, String>>,
-    #[schema(ignore)]
-    pub(super) file_name: String,
-    #[schema(ignore)]
-    pub(super) content_type: String,
+    pub(super) method: UploadMethod,
+    pub(super) metadata: Option<String>,
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]

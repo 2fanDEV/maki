@@ -11,6 +11,7 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
     let documents = maki::document_service::DocumentService::new(&config.aws).await?;
+
     let app = maki::api::router(database, documents);
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
 

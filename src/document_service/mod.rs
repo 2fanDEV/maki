@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};
+use axum::body::Bytes;
 use uuid::Uuid;
 
 use crate::{config::AwsConfig, document_service::s3util::S3Util, service::ServiceError};
@@ -42,7 +43,7 @@ impl DocumentService {
     pub(super) async fn upload(
         &self,
         file_name: &str,
-        bytes: Vec<u8>,
+        bytes: &Bytes,
         content_type: &str,
         bucket_prefix: Option<&str>,
         metadata: HashMap<String, String>,
@@ -57,7 +58,13 @@ impl DocumentService {
         let metadata = upload_metadata(metadata, &bucket_name);
         let e_tag = self
             .s3_util
-            .upload(&bucket_name, &object_key, content_type, metadata, bytes)
+            .upload(
+                &bucket_name,
+                &object_key,
+                content_type,
+                metadata,
+                bytes.to_vec(),
+            )
             .await
             .map_err(ServiceError::Internal)?;
 
